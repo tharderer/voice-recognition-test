@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Verse Voice Test</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:0;background:#f6f7f9;color:#111}main{max-width:700px;margin:auto;padding:20px}.card{background:#fff;border:1px solid #ddd;border-radius:14px;padding:18px;margin:12px 0}.ref{font-size:26px;font-weight:800}.verse{font-size:22px;line-height:1.45}.words{font-size:28px;line-height:1.5;min-height:110px}.good{color:#087a2f}.bad{color:#b42318;text-decoration:line-through}.pending{color:#666}.status{font-weight:700;font-size:18px}button{width:100%;min-height:56px;font-size:20px;font-weight:800;border:0;border-radius:12px;background:#111;color:#fff;margin-top:10px}.pass{background:#087a2f}.small{font-size:14px;color:#555}</style>
+</head>
+<body><main>
+<div class="card"><div class="ref">Romans 3:23 KJV</div><div class="verse">For all have sinned, and come short of the glory of God.</div></div>
+<button id="start">START LISTENING</button>
+<div class="card"><div class="status" id="status">Ready.</div><div class="words" id="output"></div><div class="small" id="debug">Correct words: 0 / 12</div></div>
+</main>
+<script>
+const targetText='For all have sinned, and come short of the glory of God.';
+const clean=s=>s.toLowerCase().replace(/[^a-z0-9']/g,' ').trim().split(/\s+/).filter(Boolean);
+const target=clean(targetText);
+let correct=[];
+let recognition;
+const output=document.getElementById('output'), statusEl=document.getElementById('status'), debug=document.getElementById('debug'), start=document.getElementById('start');
+function render(temp=[]){
+ output.innerHTML='';
+ correct.forEach(w=>{const s=document.createElement('span');s.className='good';s.textContent=w+' ';output.appendChild(s)});
+ temp.forEach(x=>{const s=document.createElement('span');s.className=x.good?'pending':'bad';s.textContent=x.word+' ';output.appendChild(s)});
+ debug.textContent=`Correct words: ${correct.length} / ${target.length}`;
+ if(correct.length===target.length){statusEl.textContent='PASS — VERSE PERFECT';statusEl.className='status pass';start.textContent='PASSED'; if(recognition) recognition.stop();}
+}
+function process(words,isFinal){
+ let pos=correct.length, temp=[];
+ for(const word of words){
+   if(pos>=target.length) break;
+   if(word===target[pos]){ temp.push({word,good:true}); pos++; }
+   else { temp.push({word,good:false}); }
+ }
+ if(isFinal){
+   for(const x of temp){ if(x.good && correct.length<target.length && x.word===target[correct.length]) correct.push(x.word); }
+   render([]);
+ } else render(temp);
+}
+start.addEventListener('click',()=>{
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){statusEl.textContent='Speech recognition is not supported in this browser. Try Chrome on Android.';return;}
+ correct=[];render([]); recognition=new SR(); recognition.continuous=true; recognition.interimResults=true; recognition.lang='en-US';
+ recognition.onstart=()=>{statusEl.textContent='Listening… speak the verse and correct yourself naturally.';start.textContent='LISTENING…'};
+ recognition.onresult=e=>{
+   let interim='', finals='';
+   for(let i=e.resultIndex;i<e.results.length;i++){
+     if(e.results[i].isFinal) finals+=e.results[i][0].transcript+' '; else interim+=e.results[i][0].transcript+' ';
+   }
+   if(finals.trim()) process(clean(finals),true);
+   if(interim.trim()) process(clean(interim),false);
+ };
+ recognition.onerror=e=>{statusEl.textContent='Recognition error: '+e.error;};
+ recognition.onend=()=>{if(correct.length<target.length){start.textContent='START LISTENING';statusEl.textContent='Stopped. Tap Start to continue.';}};
+ recognition.start();
+});
+render([]);
+</script>
+</body></html>
