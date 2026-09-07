@@ -3,57 +3,82 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Verse Voice Test</title>
+<title>Verse Voice Test v2</title>
 <style>
-body{font-family:system-ui,sans-serif;margin:0;background:#f6f7f9;color:#111}main{max-width:700px;margin:auto;padding:20px}.card{background:#fff;border:1px solid #ddd;border-radius:14px;padding:18px;margin:12px 0}.ref{font-size:26px;font-weight:800}.verse{font-size:22px;line-height:1.45}.words{font-size:28px;line-height:1.5;min-height:110px}.good{color:#087a2f}.bad{color:#b42318;text-decoration:line-through}.pending{color:#666}.status{font-weight:700;font-size:18px}button{width:100%;min-height:56px;font-size:20px;font-weight:800;border:0;border-radius:12px;background:#111;color:#fff;margin-top:10px}.pass{background:#087a2f}.small{font-size:14px;color:#555}</style>
+body{font-family:system-ui,sans-serif;margin:0;background:#f6f7f9;color:#111}main{max-width:700px;margin:auto;padding:20px}.card{background:#fff;border:1px solid #ddd;border-radius:14px;padding:18px;margin:12px 0}.ref{font-size:26px;font-weight:800}.verse{font-size:22px;line-height:1.45}.words{font-size:28px;line-height:1.5;min-height:110px}.good{color:#087a2f}.bad{color:#b42318;text-decoration:line-through}.status{font-weight:700;font-size:18px}button{width:100%;min-height:56px;font-size:20px;font-weight:800;border:0;border-radius:12px;background:#111;color:#fff;margin-top:10px}.stop{background:#8b1e16}.pass{color:#087a2f}.small{font-size:14px;color:#555}.heard{font-size:16px;color:#555;margin-top:10px}</style>
 </head>
 <body><main>
 <div class="card"><div class="ref">Romans 3:23 KJV</div><div class="verse">For all have sinned, and come short of the glory of God.</div></div>
 <button id="start">START LISTENING</button>
-<div class="card"><div class="status" id="status">Ready.</div><div class="words" id="output"></div><div class="small" id="debug">Correct words: 0 / 12</div></div>
+<div class="card"><div class="status" id="status">Ready. Version 2.</div><div class="words" id="output"></div><div class="small" id="debug"></div><div class="heard" id="heard"></div></div>
 </main>
 <script>
 const targetText='For all have sinned, and come short of the glory of God.';
 const clean=s=>s.toLowerCase().replace(/[^a-z0-9']/g,' ').trim().split(/\s+/).filter(Boolean);
 const target=clean(targetText);
-let correct=[];
-let recognition;
-const output=document.getElementById('output'), statusEl=document.getElementById('status'), debug=document.getElementById('debug'), start=document.getElementById('start');
-function render(temp=[]){
+let correct=[], recognition=null, wanted=false, restarting=false, passed=false;
+const output=document.getElementById('output'),statusEl=document.getElementById('status'),debug=document.getElementById('debug'),heard=document.getElementById('heard'),start=document.getElementById('start');
+function render(extra=[]){
  output.innerHTML='';
  correct.forEach(w=>{const s=document.createElement('span');s.className='good';s.textContent=w+' ';output.appendChild(s)});
- temp.forEach(x=>{const s=document.createElement('span');s.className=x.good?'pending':'bad';s.textContent=x.word+' ';output.appendChild(s)});
- debug.textContent=`Correct words: ${correct.length} / ${target.length}`;
- if(correct.length===target.length){statusEl.textContent='PASS — VERSE PERFECT';statusEl.className='status pass';start.textContent='PASSED'; if(recognition) recognition.stop();}
+ extra.forEach(x=>{const s=document.createElement('span');s.className=x.good?'good':'bad';s.textContent=x.word+' ';output.appendChild(s)});
+ debug.textContent=`Correct words locked in: ${correct.length} / ${target.length} • next: ${target[correct.length]||'DONE'}`;
+ if(correct.length>=target.length&&!passed){passed=true;wanted=false;statusEl.textContent='PASS — VERSE PERFECT';statusEl.className='status pass';start.textContent='PASSED — TAP TO RESET';start.className='pass';try{recognition.stop()}catch(e){}}
 }
-function process(words,isFinal){
- let pos=correct.length, temp=[];
+// Find correct words anywhere in the newest recognition phrase. Wrong words are ignored.
+// This deliberately lets the speaker correct a mistake naturally: if the expected word
+// appears later in the same/following phrase, we resume from there rather than failing.
+function consume(words,isFinal){
+ let pos=correct.length, preview=[], accepted=[];
  for(const word of words){
-   if(pos>=target.length) break;
-   if(word===target[pos]){ temp.push({word,good:true}); pos++; }
-   else { temp.push({word,good:false}); }
+   if(pos>=target.length)break;
+   if(word===target[pos]){preview.push({word,good:true});accepted.push(word);pos++;}
+   else preview.push({word,good:false});
  }
  if(isFinal){
-   for(const x of temp){ if(x.good && correct.length<target.length && x.word===target[correct.length]) correct.push(x.word); }
+   // Commit only the sequential target words discovered in this final phrase.
+   for(const word of accepted){if(word===target[correct.length])correct.push(word);}
+   heard.textContent='Last final recognition: '+words.join(' ');
    render([]);
- } else render(temp);
+ }else render(preview);
+}
+function makeRecognition(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR)return null;
+ const r=new SR();r.continuous=true;r.interimResults=true;r.lang='en-US';r.maxAlternatives=1;
+ r.onstart=()=>{restarting=false;statusEl.textContent='Listening continuously… correct mistakes and keep going.';start.textContent='STOP LISTENING';start.className='stop';};
+ r.onresult=e=>{
+   let interim=[];
+   for(let i=e.resultIndex;i<e.results.length;i++){
+     const words=clean(e.results[i][0].transcript);
+     if(e.results[i].isFinal)consume(words,true); else interim=words;
+   }
+   if(interim.length)consume(interim,false);
+ };
+ r.onerror=e=>{
+   // no-speech is normal on mobile; onend will immediately restart.
+   if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+     wanted=false;statusEl.textContent='Microphone/speech permission denied.';start.textContent='START LISTENING';start.className='';
+   } else statusEl.textContent='Recognition '+e.error+' — restarting…';
+ };
+ r.onend=()=>{
+   if(wanted&&!passed){
+     statusEl.textContent='Chrome ended a speech session — restarting automatically…';
+     if(!restarting){restarting=true;setTimeout(()=>{if(wanted&&!passed){recognition=makeRecognition();try{recognition.start()}catch(e){restarting=false;}}},150);}
+   }else if(!passed){statusEl.textContent='Stopped.';start.textContent='START LISTENING';start.className='';}
+ };
+ return r;
+}
+function begin(){
+ correct=[];passed=false;wanted=true;heard.textContent='';statusEl.className='status';render([]);
+ recognition=makeRecognition();
+ if(!recognition){wanted=false;statusEl.textContent='Speech recognition is not supported here. Use Chrome on Android.';return;}
+ try{recognition.start()}catch(e){statusEl.textContent='Could not start: '+e.message;}
 }
 start.addEventListener('click',()=>{
- const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SR){statusEl.textContent='Speech recognition is not supported in this browser. Try Chrome on Android.';return;}
- correct=[];render([]); recognition=new SR(); recognition.continuous=true; recognition.interimResults=true; recognition.lang='en-US';
- recognition.onstart=()=>{statusEl.textContent='Listening… speak the verse and correct yourself naturally.';start.textContent='LISTENING…'};
- recognition.onresult=e=>{
-   let interim='', finals='';
-   for(let i=e.resultIndex;i<e.results.length;i++){
-     if(e.results[i].isFinal) finals+=e.results[i][0].transcript+' '; else interim+=e.results[i][0].transcript+' ';
-   }
-   if(finals.trim()) process(clean(finals),true);
-   if(interim.trim()) process(clean(interim),false);
- };
- recognition.onerror=e=>{statusEl.textContent='Recognition error: '+e.error;};
- recognition.onend=()=>{if(correct.length<target.length){start.textContent='START LISTENING';statusEl.textContent='Stopped. Tap Start to continue.';}};
- recognition.start();
+ if(passed){begin();return;}
+ if(wanted){wanted=false;try{recognition.stop()}catch(e){};return;}
+ begin();
 });
 render([]);
 </script>
