@@ -3,82 +3,149 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Verse Voice Test v2</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Verse Voice Test v3</title>
 <style>
-body{font-family:system-ui,sans-serif;margin:0;background:#f6f7f9;color:#111}main{max-width:700px;margin:auto;padding:20px}.card{background:#fff;border:1px solid #ddd;border-radius:14px;padding:18px;margin:12px 0}.ref{font-size:26px;font-weight:800}.verse{font-size:22px;line-height:1.45}.words{font-size:28px;line-height:1.5;min-height:110px}.good{color:#087a2f}.bad{color:#b42318;text-decoration:line-through}.status{font-weight:700;font-size:18px}button{width:100%;min-height:56px;font-size:20px;font-weight:800;border:0;border-radius:12px;background:#111;color:#fff;margin-top:10px}.stop{background:#8b1e16}.pass{color:#087a2f}.small{font-size:14px;color:#555}.heard{font-size:16px;color:#555;margin-top:10px}</style>
+body{font-family:system-ui,sans-serif;margin:0;background:#f6f7f9;color:#111}main{max-width:700px;margin:auto;padding:20px}.badge{display:inline-block;font-weight:900;background:#111;color:#fff;border-radius:999px;padding:7px 11px;margin-bottom:8px}.card{background:#fff;border:1px solid #ddd;border-radius:14px;padding:18px;margin:12px 0}.ref{font-size:26px;font-weight:800}.verse{font-size:22px;line-height:1.45}.words{font-size:28px;line-height:1.5;min-height:90px}.good{color:#087a2f}.bad{color:#b42318;text-decoration:line-through}.status{font-weight:800;font-size:18px}button{width:100%;min-height:58px;font-size:20px;font-weight:800;border:0;border-radius:12px;background:#111;color:#fff;margin-top:10px}.stop{background:#8b1e16}.passBtn{background:#087a2f}.small{font-size:14px;color:#555;line-height:1.5}.log{font-size:15px;color:#333;margin-top:10px;word-break:break-word}</style>
 </head>
 <body><main>
+<div class="badge">VERSION 3 — PULSE MODE</div>
 <div class="card"><div class="ref">Romans 3:23 KJV</div><div class="verse">For all have sinned, and come short of the glory of God.</div></div>
 <button id="start">START LISTENING</button>
-<div class="card"><div class="status" id="status">Ready. Version 2.</div><div class="words" id="output"></div><div class="small" id="debug"></div><div class="heard" id="heard"></div></div>
+<div class="card">
+<div class="status" id="status">Ready.</div>
+<div class="words" id="output"></div>
+<div class="small" id="debug"></div>
+<div class="log" id="heard"></div>
+</div>
 </main>
 <script>
 const targetText='For all have sinned, and come short of the glory of God.';
 const clean=s=>s.toLowerCase().replace(/[^a-z0-9']/g,' ').trim().split(/\s+/).filter(Boolean);
 const target=clean(targetText);
-let correct=[], recognition=null, wanted=false, restarting=false, passed=false;
-const output=document.getElementById('output'),statusEl=document.getElementById('status'),debug=document.getElementById('debug'),heard=document.getElementById('heard'),start=document.getElementById('start');
-function render(extra=[]){
- output.innerHTML='';
- correct.forEach(w=>{const s=document.createElement('span');s.className='good';s.textContent=w+' ';output.appendChild(s)});
- extra.forEach(x=>{const s=document.createElement('span');s.className=x.good?'good':'bad';s.textContent=x.word+' ';output.appendChild(s)});
- debug.textContent=`Correct words locked in: ${correct.length} / ${target.length} • next: ${target[correct.length]||'DONE'}`;
- if(correct.length>=target.length&&!passed){passed=true;wanted=false;statusEl.textContent='PASS — VERSE PERFECT';statusEl.className='status pass';start.textContent='PASSED — TAP TO RESET';start.className='pass';try{recognition.stop()}catch(e){}}
+const StandardSR=window.SpeechRecognition;
+const SR=StandardSR||window.webkitSpeechRecognition;
+const startBtn=document.getElementById('start');
+const statusEl=document.getElementById('status');
+const output=document.getElementById('output');
+const debug=document.getElementById('debug');
+const heard=document.getElementById('heard');
+let recognition=null,wanted=false,passed=false,correct=[],restartCount=0,startCount=0,lastError='none',retryTimer=null,everStarted=false,localMode=false;
+
+function render(preview=[]){
+  output.innerHTML='';
+  correct.forEach(w=>{const s=document.createElement('span');s.className='good';s.textContent=w+' ';output.appendChild(s)});
+  preview.forEach(x=>{const s=document.createElement('span');s.className=x.good?'good':'bad';s.textContent=x.word+' ';output.appendChild(s)});
+  debug.textContent=`Locked: ${correct.length}/${target.length} • next: ${target[correct.length]||'DONE'} • starts: ${startCount} • restarts: ${restartCount} • last error: ${lastError} • ${localMode?'on-device':'browser service'}`;
+  if(correct.length>=target.length&&!passed){
+    passed=true;wanted=false;clearTimeout(retryTimer);statusEl.textContent='PASS — VERSE PERFECT';startBtn.textContent='PASSED — TAP TO RESET';startBtn.className='passBtn';try{recognition.abort()}catch(e){}
+  }
 }
-// Find correct words anywhere in the newest recognition phrase. Wrong words are ignored.
-// This deliberately lets the speaker correct a mistake naturally: if the expected word
-// appears later in the same/following phrase, we resume from there rather than failing.
+
 function consume(words,isFinal){
- let pos=correct.length, preview=[], accepted=[];
- for(const word of words){
-   if(pos>=target.length)break;
-   if(word===target[pos]){preview.push({word,good:true});accepted.push(word);pos++;}
-   else preview.push({word,good:false});
- }
- if(isFinal){
-   // Commit only the sequential target words discovered in this final phrase.
-   for(const word of accepted){if(word===target[correct.length])correct.push(word);}
-   heard.textContent='Last final recognition: '+words.join(' ');
-   render([]);
- }else render(preview);
+  let pos=correct.length;
+  const preview=[];
+  const accepted=[];
+  for(const word of words){
+    if(pos>=target.length)break;
+    if(word===target[pos]){preview.push({word,good:true});accepted.push(word);pos++;}
+    else preview.push({word,good:false});
+  }
+  if(isFinal){
+    for(const w of accepted){if(w===target[correct.length])correct.push(w);}
+    heard.textContent='Last final recognition: '+words.join(' ');
+    render([]);
+  }else{
+    render(preview);
+  }
 }
-function makeRecognition(){
- const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SR)return null;
- const r=new SR();r.continuous=true;r.interimResults=true;r.lang='en-US';r.maxAlternatives=1;
- r.onstart=()=>{restarting=false;statusEl.textContent='Listening continuously… correct mistakes and keep going.';start.textContent='STOP LISTENING';start.className='stop';};
- r.onresult=e=>{
-   let interim=[];
-   for(let i=e.resultIndex;i<e.results.length;i++){
-     const words=clean(e.results[i][0].transcript);
-     if(e.results[i].isFinal)consume(words,true); else interim=words;
-   }
-   if(interim.length)consume(interim,false);
- };
- r.onerror=e=>{
-   // no-speech is normal on mobile; onend will immediately restart.
-   if(e.error==='not-allowed'||e.error==='service-not-allowed'){
-     wanted=false;statusEl.textContent='Microphone/speech permission denied.';start.textContent='START LISTENING';start.className='';
-   } else statusEl.textContent='Recognition '+e.error+' — restarting…';
- };
- r.onend=()=>{
-   if(wanted&&!passed){
-     statusEl.textContent='Chrome ended a speech session — restarting automatically…';
-     if(!restarting){restarting=true;setTimeout(()=>{if(wanted&&!passed){recognition=makeRecognition();try{recognition.start()}catch(e){restarting=false;}}},150);}
-   }else if(!passed){statusEl.textContent='Stopped.';start.textContent='START LISTENING';start.className='';}
- };
- return r;
+
+function scheduleStart(delay=350){
+  if(!wanted||passed)return;
+  clearTimeout(retryTimer);
+  retryTimer=setTimeout(()=>{
+    if(!wanted||passed)return;
+    try{
+      recognition.start();
+    }catch(e){
+      lastError=e.name||'start-exception';
+      statusEl.textContent='Restart collision — retrying…';
+      scheduleStart(700);
+      render([]);
+    }
+  },delay);
 }
-function begin(){
- correct=[];passed=false;wanted=true;heard.textContent='';statusEl.className='status';render([]);
- recognition=makeRecognition();
- if(!recognition){wanted=false;statusEl.textContent='Speech recognition is not supported here. Use Chrome on Android.';return;}
- try{recognition.start()}catch(e){statusEl.textContent='Could not start: '+e.message;}
+
+function buildRecognition(){
+  if(!SR)return null;
+  const r=new SR();
+  // Deliberately use short phrase sessions on Android instead of relying on broken mobile continuous mode.
+  r.continuous=false;
+  r.interimResults=true;
+  r.lang='en-US';
+  r.maxAlternatives=1;
+  if(localMode&&'processLocally' in r)r.processLocally=true;
+  try{
+    if(window.SpeechRecognitionPhrase&&'phrases' in r){
+      const phrases=[new SpeechRecognitionPhrase(targetText,10)];
+      [...new Set(target)].forEach(w=>phrases.push(new SpeechRecognitionPhrase(w,4)));
+      r.phrases=phrases;
+    }
+  }catch(e){}
+  r.onstart=()=>{
+    everStarted=true;startCount++;lastError='none';statusEl.textContent='LISTENING — pulse sessions auto-restart; pause or correct yourself normally.';startBtn.textContent='STOP LISTENING';startBtn.className='stop';render([]);
+  };
+  r.onresult=e=>{
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const words=clean(e.results[i][0].transcript);
+      consume(words,e.results[i].isFinal);
+    }
+  };
+  r.onerror=e=>{
+    lastError=e.error||'unknown';
+    // A no-speech timeout is expected in pulse mode. Keep going.
+    if(e.error==='no-speech'||e.error==='aborted'||e.error==='network'){
+      statusEl.textContent=`${e.error} — keeping listener alive…`;
+    }else if((e.error==='not-allowed'||e.error==='service-not-allowed')&&!everStarted){
+      wanted=false;statusEl.textContent='Microphone/speech permission denied.';startBtn.textContent='START LISTENING';startBtn.className='';
+    }else if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+      // Some Android builds report this transiently during an automatic restart. Retry slowly before giving up.
+      statusEl.textContent='Android rejected one auto-restart — retrying…';
+    }else{
+      statusEl.textContent=`Recognition error: ${e.error} — retrying…`;
+    }
+    render([]);
+  };
+  r.onend=()=>{
+    if(wanted&&!passed){restartCount++;statusEl.textContent='Session ended — restarting automatically…';render([]);scheduleStart(lastError==='not-allowed'||lastError==='service-not-allowed'?1200:300);}
+    else if(!passed){statusEl.textContent='Stopped.';startBtn.textContent='START LISTENING';startBtn.className='';}
+  };
+  return r;
 }
-start.addEventListener('click',()=>{
- if(passed){begin();return;}
- if(wanted){wanted=false;try{recognition.stop()}catch(e){};return;}
- begin();
+
+async function detectLocalMode(){
+  localMode=false;
+  if(!StandardSR||typeof StandardSR.available!=='function'||!('processLocally' in StandardSR.prototype))return;
+  try{
+    const availability=await StandardSR.available({langs:['en-US'],processLocally:true,quality:'dictation'});
+    heard.textContent='On-device dictation availability: '+availability;
+    if(availability==='available')localMode=true;
+  }catch(e){heard.textContent='On-device check unavailable; using normal browser speech service.';}
+}
+
+async function begin(){
+  correct=[];passed=false;wanted=true;restartCount=0;startCount=0;lastError='none';everStarted=false;startBtn.className='';statusEl.textContent='Checking phone speech engine…';render([]);
+  if(!SR){wanted=false;statusEl.textContent='SpeechRecognition is not supported in this browser.';return;}
+  await detectLocalMode();
+  recognition=buildRecognition();
+  if(!wanted)return;
+  try{recognition.start();}catch(e){lastError=e.name||'start-exception';statusEl.textContent='First start failed — retrying…';scheduleStart(700);render([]);}
+}
+
+startBtn.addEventListener('click',()=>{
+  if(passed){begin();return;}
+  if(wanted){wanted=false;clearTimeout(retryTimer);try{recognition.abort()}catch(e){};return;}
+  begin();
 });
 render([]);
 </script>
