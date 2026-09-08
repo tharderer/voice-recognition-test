@@ -2,151 +2,267 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>Verse Voice Test v3</title>
+<title>Verse Chomp — Tilt Test</title>
 <style>
-body{font-family:system-ui,sans-serif;margin:0;background:#f6f7f9;color:#111}main{max-width:700px;margin:auto;padding:20px}.badge{display:inline-block;font-weight:900;background:#111;color:#fff;border-radius:999px;padding:7px 11px;margin-bottom:8px}.card{background:#fff;border:1px solid #ddd;border-radius:14px;padding:18px;margin:12px 0}.ref{font-size:26px;font-weight:800}.verse{font-size:22px;line-height:1.45}.words{font-size:28px;line-height:1.5;min-height:90px}.good{color:#087a2f}.bad{color:#b42318;text-decoration:line-through}.status{font-weight:800;font-size:18px}button{width:100%;min-height:58px;font-size:20px;font-weight:800;border:0;border-radius:12px;background:#111;color:#fff;margin-top:10px}.stop{background:#8b1e16}.passBtn{background:#087a2f}.small{font-size:14px;color:#555;line-height:1.5}.log{font-size:15px;color:#333;margin-top:10px;word-break:break-word}</style>
+:root{--bg:#050711;--panel:#111831;--line:#31457e;--text:#f7f8ff;--muted:#9dacd5;--gold:#ffdb4d;--blue:#4d6fff;--good:#57f18e;--bad:#ff6077}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;background:radial-gradient(circle at 50% 0,#172254,#070a16 42%,#030409 100%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none}
+body{display:flex;justify-content:center;padding:8px 8px 22px}.app{width:min(100%,500px)}.card{background:linear-gradient(180deg,#121a35,#0b1125);border:1px solid #2e4075;border-radius:18px;box-shadow:0 12px 38px #0008}
+.title{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 8px;font-weight:1000;font-size:25px;letter-spacing:.03em}.title b{color:var(--gold)}.https{font-size:10px;padding:6px 8px;border:1px solid #2d8a54;background:#0b2b1b;border-radius:999px;color:#72f5a5}
+.sensor{padding:12px;margin-bottom:8px}.sensor h2{font-size:12px;letter-spacing:.1em;margin:0 0 9px;color:#becbff}.start{width:100%;border:0;border-radius:14px;padding:14px 12px;font-size:17px;font-weight:1000;background:linear-gradient(#ffe76b,#ffc82a);color:#171100;box-shadow:0 0 25px #ffd84d55}.start.on{background:linear-gradient(#73ffad,#2bd56e);box-shadow:0 0 25px #47ee8b55}
+.sensorGrid{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;margin-top:10px}.arrow{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:#060a17;border:2px solid #415ca6;font-size:38px;font-weight:1000;color:var(--gold);box-shadow:inset 0 0 18px #425fff25}.sensorText{font-size:12px;line-height:1.4;color:var(--muted);font-weight:700}.sensorText strong{color:#fff}.live{margin-top:4px;font-family:ui-monospace,monospace;color:#8dd7ff;font-size:11px}
+.settings{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:9px}.settings button{border:1px solid #40538b;background:#101833;color:#eef2ff;border-radius:10px;padding:7px 9px;font-weight:850}.settings label{font-size:11px;color:#a9b5d8;font-weight:800}.settings input[type=range]{width:105px;accent-color:var(--gold)}
+.mode{display:flex;gap:6px;margin-top:8px}.mode button{flex:1;border:1px solid #394c83;background:#0c132b;color:#cdd7ff;border-radius:10px;padding:8px;font-weight:900}.mode button.active{background:#253a74;color:#fff;border-color:#7594ff}
+.verse{padding:11px 12px;margin-bottom:8px}.ref{display:flex;justify-content:space-between;font-size:13px;font-weight:1000;letter-spacing:.07em}.ref span:last-child{color:#8da2df}.verseText{font-size:19px;line-height:1.32;font-weight:800;margin-top:7px}.blank{color:var(--gold)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}.stat{background:#0d142b;border:1px solid #293966;border-radius:12px;text-align:center;padding:6px}.stat small{font-size:8px;color:#8292bf;font-weight:1000;letter-spacing:.09em}.stat div{font-size:15px;font-weight:1000;margin-top:1px}
+.meter{height:9px;background:#050817;border:1px solid #293966;border-radius:99px;overflow:hidden;margin-top:7px}.meter div{height:100%;width:0;background:linear-gradient(90deg,#44d7ff,#6b66ff,#ff62d5);transition:.2s}
+.game{padding:7px;position:relative}.game canvas{display:block;width:100%;height:auto;background:#02040a;border-radius:13px;touch-action:none}.flash{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:8px 13px;border-radius:999px;background:#060b1fe8;border:1px solid #6d88ff;font-weight:1000;opacity:0;pointer-events:none}.flash.show{opacity:1}.flash.bad{border-color:var(--bad);color:#ff9cac}.flash.good{border-color:var(--good);color:#92ffb7}
+.dpad{width:150px;height:118px;margin:9px auto 0;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);gap:4px}.dpad button{border:1px solid #35477e;background:#121b37;color:white;border-radius:12px;font-size:19px;font-weight:1000}.up{grid-column:2}.left{grid-column:1;grid-row:2}.right{grid-column:3;grid-row:2}.down{grid-column:2;grid-row:3}.note{text-align:center;font-size:10px;color:#8292bb;margin-top:7px;line-height:1.35}
+@media(max-width:390px){.title{font-size:21px}.sensorGrid{grid-template-columns:55px 1fr}.arrow{width:55px;height:55px}.verseText{font-size:17px}}
+</style>
 </head>
-<body><main>
-<div class="badge">VERSION 3 — PULSE MODE</div>
-<div class="card"><div class="ref">Romans 3:23 KJV</div><div class="verse">For all have sinned, and come short of the glory of God.</div></div>
-<button id="start">START LISTENING</button>
-<div class="card">
-<div class="status" id="status">Ready.</div>
-<div class="words" id="output"></div>
-<div class="small" id="debug"></div>
-<div class="log" id="heard"></div>
-</div>
+<body>
+<main class="app">
+  <div class="title"><div><b>VERSE</b> CHOMP</div><div class="https">HTTPS SENSOR TEST</div></div>
+
+  <section class="card sensor">
+    <h2>PHONE TILT CONTROL</h2>
+    <button id="startTilt" class="start">📱 START TILT MODE</button>
+    <div class="sensorGrid">
+      <div id="arrow" class="arrow">•</div>
+      <div class="sensorText">
+        <div id="sensorStatus"><strong>Tilt is OFF.</strong> Hold the phone normally, then tap START TILT MODE.</div>
+        <div id="live" class="live">sensor: waiting</div>
+      </div>
+    </div>
+    <div class="settings">
+      <button id="calibrate">Calibrate</button>
+      <button id="flipY">Flip ↑↓: OFF</button>
+      <label>Sensitivity <input id="sensitivity" type="range" min="4" max="16" value="10"></label>
+    </div>
+    <div class="mode">
+      <button id="tiltBtn" class="active">📱 TILT</button>
+      <button id="touchBtn">🎮 TOUCH</button>
+    </div>
+  </section>
+
+  <section class="card verse">
+    <div class="ref"><span>ROMANS 3:23</span><span>KJV</span></div>
+    <div id="verseText" class="verseText"></div>
+    <div class="meter"><div id="meterFill"></div></div>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><small>SCORE</small><div id="score">0</div></div>
+    <div class="stat"><small>LIVES</small><div id="lives">●●●</div></div>
+    <div class="stat"><small>STREAK</small><div id="streak">0</div></div>
+    <div class="stat"><small>POWER</small><div id="power">0/4</div></div>
+  </div>
+
+  <section class="card game">
+    <canvas id="game" width="390" height="450"></canvas>
+    <div id="flash" class="flash"></div>
+  </section>
+
+  <div class="dpad">
+    <button class="up" data-dir="up">▲</button>
+    <button class="left" data-dir="left">◀</button>
+    <button class="right" data-dir="right">▶</button>
+    <button class="down" data-dir="down">▼</button>
+  </div>
+  <div class="note">Tilt mode never switches itself off. Tip toward a turn early; the direction stays queued until Pac-Man reaches an opening. D-pad remains available as a backup.</div>
 </main>
+
 <script>
-const targetText='For all have sinned, and come short of the glory of God.';
-const clean=s=>s.toLowerCase().replace(/[^a-z0-9']/g,' ').trim().split(/\s+/).filter(Boolean);
-const target=clean(targetText);
-const StandardSR=window.SpeechRecognition;
-const SR=StandardSR||window.webkitSpeechRecognition;
-const startBtn=document.getElementById('start');
-const statusEl=document.getElementById('status');
-const output=document.getElementById('output');
-const debug=document.getElementById('debug');
-const heard=document.getElementById('heard');
-let recognition=null,wanted=false,passed=false,correct=[],restartCount=0,startCount=0,lastError='none',retryTimer=null,everStarted=false,localMode=false;
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+var canvas=$("game"),ctx=canvas.getContext("2d"),W=390,H=450,T=30,OX=0;
+var maze=[
+"#############",
+"#     #     #",
+"# ### # ### #",
+"#           #",
+"# # ##### # #",
+"# #   #   # #",
+"# ### # ### #",
+"#           #",
+"### # # # ###",
+"#           #",
+"# ### # ### #",
+"#     #     #",
+"# ###   ### #",
+"#           #",
+"#############"];
+var R=maze.length,C=maze[0].length;
+var verse=["For","all","have","sinned,","and","come","short","of","the","glory","of","God."];
+var keys=verse.map(function(x){return x.toLowerCase().replace(/[^a-z]/g,"")});
+var junk=["some","people","world","always","shall","grace","good","they","were","unto","from","every","great","heaven"];
+var dirs={left:{x:-1,y:0},right:{x:1,y:0},up:{x:0,y:-1},down:{x:0,y:1}};
+var player,ghosts,targets,index,score,lives,streak,power,powerUntil=0,wrongUntil=0,last=0,running=true;
 
-function render(preview=[]){
-  output.innerHTML='';
-  correct.forEach(w=>{const s=document.createElement('span');s.className='good';s.textContent=w+' ';output.appendChild(s)});
-  preview.forEach(x=>{const s=document.createElement('span');s.className=x.good?'good':'bad';s.textContent=x.word+' ';output.appendChild(s)});
-  debug.textContent=`Locked: ${correct.length}/${target.length} • next: ${target[correct.length]||'DONE'} • starts: ${startCount} • restarts: ${restartCount} • last error: ${lastError} • ${localMode?'on-device':'browser service'}`;
-  if(correct.length>=target.length&&!passed){
-    passed=true;wanted=false;clearTimeout(retryTimer);statusEl.textContent='PASS — VERSE PERFECT';startBtn.textContent='PASSED — TAP TO RESET';startBtn.className='passBtn';try{recognition.abort()}catch(e){}
-  }
+var controlMode="tilt",tiltEnabled=false,invertY=false,source="none";
+var orientationSeen=0,motionSeen=0,accelSeen=0;
+var baseA=0,baseB=0,lastA=0,lastB=0,needsCalibration=false,genericAccel=null;
+
+function wall(c,r){return r<0||c<0||r>=R||c>=C||maze[r][c]==="#"}
+var open=[];
+for(var r=0;r<R;r++)for(var c=0;c<C;c++)if(!wall(c,r))open.push({c:c,r:r});
+
+function can(c,r,d){return !wall(Math.round(c)+d.x,Math.round(r)+d.y)}
+function centered(e){return Math.abs(e.c-Math.round(e.c))<.10&&Math.abs(e.r-Math.round(e.r))<.10}
+function setDir(n){if(dirs[n])player.want={x:dirs[n].x,y:dirs[n].y}}
+function distance(a,b){return Math.hypot(a.c-b.c,a.r-b.r)}
+function choice(ex){
+  for(var i=0;i<100;i++){var p=open[Math.floor(Math.random()*open.length)],bad=ex.some(function(q){return Math.abs(p.c-q.c)+Math.abs(p.r-q.r)<2});if(!bad)return {c:p.c,r:p.r}}
+  return {c:1,r:1};
 }
+function shuffle(a){for(var i=a.length-1;i;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 
-function consume(words,isFinal){
-  let pos=correct.length;
-  const preview=[];
-  const accepted=[];
-  for(const word of words){
-    if(pos>=target.length)break;
-    if(word===target[pos]){preview.push({word,good:true});accepted.push(word);pos++;}
-    else preview.push({word,good:false});
-  }
-  if(isFinal){
-    for(const w of accepted){if(w===target[correct.length])correct.push(w);}
-    heard.textContent='Last final recognition: '+words.join(' ');
-    render([]);
+function actors(){
+  player={c:6,r:13,dir:{x:0,y:0},want:{x:0,y:0},mouth:0};
+  ghosts=[
+    {c:1,r:1,dir:{x:1,y:0},speed:2.8,color:"#ff4c67",home:{c:1,r:1}},
+    {c:11,r:1,dir:{x:-1,y:0},speed:2.65,color:"#4bdcff",home:{c:11,r:1}},
+    {c:6,r:7,dir:{x:1,y:0},speed:2.55,color:"#ff78d0",home:{c:6,r:7}}
+  ];
+}
+function spawn(){
+  if(index>=keys.length){targets=[];return}
+  var pool=keys.slice(index+1).concat(keys.slice(0,index)).concat(junk).filter(function(x){return x!==keys[index]});
+  pool=Array.from(new Set(pool));
+  shuffle(pool);
+  var words=shuffle([keys[index]].concat(pool.slice(0,4)));
+  var used=[{c:player.c,r:player.r}].concat(ghosts.map(function(g){return {c:g.c,r:g.r}}));
+  targets=words.map(function(w){var p=choice(used);used.push(p);return {word:w,c:p.c,r:p.r}});
+}
+function reset(){
+  index=0;score=0;lives=3;streak=0;power=0;powerUntil=0;wrongUntil=0;running=true;actors();spawn();ui();
+}
+function ui(){
+  $("score").textContent=score;$("lives").textContent="●".repeat(Math.max(0,lives))||"—";$("streak").textContent=streak;
+  var active=performance.now()<powerUntil;
+  $("power").textContent=active?"POWER!":power+"/4";
+  $("meterFill").style.width=active?"100%":(power/4*100)+"%";
+  var done=verse.slice(0,index).join(" ");
+  $("verseText").innerHTML=(done?done+" ":"")+(index<verse.length?'<span class="blank">______</span>':"✓ VERSE COMPLETE");
+}
+var ft;
+function flash(txt,bad){clearTimeout(ft);$("flash").textContent=txt;$("flash").className="flash show "+(bad?"bad":"good");ft=setTimeout(function(){$("flash").className="flash"},650)}
+function collect(t,now){
+  if(t.word===keys[index]){
+    score+=100+streak*10;streak++;index++;power++;flash("✓ CORRECT",false);
+    if(power>=4){power=0;powerUntil=now+6500;score+=250;flash("VERSE POWER!",false)}
+    if(index>=keys.length){score+=1000;running=false;flash("VERSE COMPLETE! "+score,false)}else spawn();
   }else{
-    render(preview);
+    streak=0;score=Math.max(0,score-50);wrongUntil=now+3000;flash("WRONG WORD",true);
   }
+  ui();
 }
-
-function scheduleStart(delay=350){
-  if(!wanted||passed)return;
-  clearTimeout(retryTimer);
-  retryTimer=setTimeout(()=>{
-    if(!wanted||passed)return;
-    try{
-      recognition.start();
-    }catch(e){
-      lastError=e.name||'start-exception';
-      statusEl.textContent='Restart collision — retrying…';
-      scheduleStart(700);
-      render([]);
-    }
-  },delay);
+function hit(g,now){
+  if(now<powerUntil){score+=500;g.c=g.home.c;g.r=g.home.r;ui();flash("GHOST CHOMP +500",false);return}
+  lives--;streak=0;ui();flash("GHOST GOT YOU",true);
+  if(lives<=0){running=false;setTimeout(reset,1100)}else{actors();spawn()}
 }
+function stepPlayer(dt){
+  if(centered(player)){
+    player.c=Math.round(player.c);player.r=Math.round(player.r);
+    if(can(player.c,player.r,player.want))player.dir={x:player.want.x,y:player.want.y};
+    if(!can(player.c,player.r,player.dir))player.dir={x:0,y:0};
+  }
+  player.c+=player.dir.x*4.2*dt;player.r+=player.dir.y*4.2*dt;player.mouth+=dt*13;
+}
+function gdir(g,now){
+  var opts=Object.keys(dirs).map(function(k){return dirs[k]}).filter(function(d){return can(g.c,g.r,d)});
+  var rev={x:-g.dir.x,y:-g.dir.y};var nr=opts.filter(function(d){return !(d.x===rev.x&&d.y===rev.y)});if(nr.length)opts=nr;
+  var scared=now<powerUntil;
+  opts.sort(function(a,b){
+    var da=Math.abs(g.c+a.x-player.c)+Math.abs(g.r+a.y-player.r);
+    var db=Math.abs(g.c+b.x-player.c)+Math.abs(g.r+b.y-player.r);
+    return scared?db-da:da-db;
+  });
+  return Math.random()<.72?opts[0]:opts[Math.floor(Math.random()*opts.length)];
+}
+function stepGhost(g,dt,now){
+  if(centered(g)){g.c=Math.round(g.c);g.r=Math.round(g.r);g.dir=gdir(g,now)||{x:0,y:0}}
+  var sp=g.speed*(now<wrongUntil?1.3:1)*(now<powerUntil?.72:1);g.c+=g.dir.x*sp*dt;g.r+=g.dir.y*sp*dt;
+}
+function update(dt,now){
+  if(!running)return;stepPlayer(dt);ghosts.forEach(function(g){stepGhost(g,dt,now)});
+  for(var i=0;i<targets.length;i++)if(distance(player,targets[i])<.47){collect(targets[i],now);break}
+  for(var j=0;j<ghosts.length;j++)if(distance(player,ghosts[j])<.56){hit(ghosts[j],now);break}
+  if(now<powerUntil)ui();
+}
+function draw(now){
+  ctx.fillStyle="#02040a";ctx.fillRect(0,0,W,H);
+  for(var r=0;r<R;r++)for(var c=0;c<C;c++){var x=c*T,y=r*T;if(wall(c,r)){ctx.fillStyle="#101a54";ctx.fillRect(x+2,y+2,T-4,T-4);ctx.strokeStyle="#4d67ff";ctx.lineWidth=1.5;ctx.strokeRect(x+4,y+4,T-8,T-8)}else{ctx.fillStyle="#7ea0ff55";ctx.beginPath();ctx.arc(x+15,y+15,1.4,0,Math.PI*2);ctx.fill()}}
+  targets.forEach(function(t){var x=(t.c+.5)*T,y=(t.r+.5)*T;ctx.font="900 10px system-ui";var w=Math.max(26,ctx.measureText(t.word).width+12);ctx.fillStyle=t.word===keys[index]? "#ffe357":"#f4f6ff";ctx.beginPath();ctx.roundRect(x-w/2,y-10,w,20,6);ctx.fill();ctx.fillStyle="#10131d";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(t.word,x,y)});
+  ghosts.forEach(function(g){var x=(g.c+.5)*T,y=(g.r+.5)*T,sc=now<powerUntil;ctx.fillStyle=sc?"#315aff":g.color;ctx.beginPath();ctx.arc(x,y-2,9,Math.PI,0);ctx.lineTo(x+9,y+8);ctx.lineTo(x+4,y+5);ctx.lineTo(x,y+8);ctx.lineTo(x-4,y+5);ctx.lineTo(x-9,y+8);ctx.closePath();ctx.fill();ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(x-3,y-3,2.5,0,Math.PI*2);ctx.arc(x+3,y-3,2.5,0,Math.PI*2);ctx.fill()});
+  var px=(player.c+.5)*T,py=(player.r+.5)*T,ang=player.dir.x<0?Math.PI:player.dir.y<0?-Math.PI/2:player.dir.y>0?Math.PI/2:0,m=.16+.13*(.5+.5*Math.sin(player.mouth));ctx.save();ctx.translate(px,py);ctx.rotate(ang);ctx.fillStyle="#ffd93d";ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,10,m*Math.PI,(2-m)*Math.PI);ctx.closePath();ctx.fill();ctx.restore();
+}
+function loop(ts){var dt=Math.min(.035,(ts-last)/1000||0);last=ts;update(dt,ts);draw(ts);requestAnimationFrame(loop)}
 
-function buildRecognition(){
-  if(!SR)return null;
-  const r=new SR();
-  // Deliberately use short phrase sessions on Android instead of relying on broken mobile continuous mode.
-  r.continuous=false;
-  r.interimResults=true;
-  r.lang='en-US';
-  r.maxAlternatives=1;
-  if(localMode&&'processLocally' in r)r.processLocally=true;
+function arrow(n,a,b){
+  var map={left:"←",right:"→",up:"↑",down:"↓",neutral:"•"};$("arrow").textContent=map[n]||"•";
+  $("live").textContent="sensor: "+source+"  A "+Number(a||0).toFixed(1)+"  B "+Number(b||0).toFixed(1);
+  if(n!=="neutral")$("sensorStatus").innerHTML="<strong>Queued: "+n.toUpperCase()+"</strong> — it will turn when that path opens.";
+}
+function steer(a,b,scale){
+  if(!tiltEnabled||controlMode!=="tilt")return;
+  lastA=a;lastB=b;
+  if(needsCalibration){baseA=a;baseB=b;needsCalibration=false;$("sensorStatus").innerHTML="<strong>Ready.</strong> Tip toward the direction you want next.";arrow("neutral",0,0);return}
+  var da=a-baseA,db=b-baseB,threshold=scale==="degrees"?(20-Number($("sensitivity").value)):Math.max(.65,(20-Number($("sensitivity").value))*.15);
+  var aa=Math.abs(da),ab=Math.abs(db);
+  if(Math.max(aa,ab)<threshold){arrow("neutral",da,db);return}
+  var n;
+  if(aa>ab)n=da>0?"right":"left";else{var down=db>0;if(invertY)down=!down;n=down?"down":"up"}
+  setDir(n);arrow(n,da,db);
+}
+function useSource(name,a,b,scale){
+  var now=Date.now();
+  if(name==="orientation"){orientationSeen=now;source="orientation";steer(a,b,scale);return}
+  if(name==="accelerometer"&&now-orientationSeen>900){accelSeen=now;source="accelerometer";steer(a,b,scale);return}
+  if(name==="motion"&&now-orientationSeen>900&&now-accelSeen>900){motionSeen=now;source="motion";steer(a,b,scale)}
+}
+window.addEventListener("deviceorientation",function(e){if(e.gamma==null||e.beta==null)return;useSource("orientation",e.gamma,e.beta,"degrees")},true);
+window.addEventListener("devicemotion",function(e){var a=e.accelerationIncludingGravity;if(!a||a.x==null||a.y==null)return;useSource("motion",a.x,a.y,"gravity")},true);
+
+async function startGenericAccel(){
+  if(!("Accelerometer" in window))return;
   try{
-    if(window.SpeechRecognitionPhrase&&'phrases' in r){
-      const phrases=[new SpeechRecognitionPhrase(targetText,10)];
-      [...new Set(target)].forEach(w=>phrases.push(new SpeechRecognitionPhrase(w,4)));
-      r.phrases=phrases;
-    }
+    genericAccel=new Accelerometer({frequency:30});
+    genericAccel.addEventListener("reading",function(){if(genericAccel.x==null||genericAccel.y==null)return;useSource("accelerometer",genericAccel.x,genericAccel.y,"gravity")});
+    genericAccel.start();
   }catch(e){}
-  r.onstart=()=>{
-    everStarted=true;startCount++;lastError='none';statusEl.textContent='LISTENING — pulse sessions auto-restart; pause or correct yourself normally.';startBtn.textContent='STOP LISTENING';startBtn.className='stop';render([]);
-  };
-  r.onresult=e=>{
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      const words=clean(e.results[i][0].transcript);
-      consume(words,e.results[i].isFinal);
-    }
-  };
-  r.onerror=e=>{
-    lastError=e.error||'unknown';
-    // A no-speech timeout is expected in pulse mode. Keep going.
-    if(e.error==='no-speech'||e.error==='aborted'||e.error==='network'){
-      statusEl.textContent=`${e.error} — keeping listener alive…`;
-    }else if((e.error==='not-allowed'||e.error==='service-not-allowed')&&!everStarted){
-      wanted=false;statusEl.textContent='Microphone/speech permission denied.';startBtn.textContent='START LISTENING';startBtn.className='';
-    }else if(e.error==='not-allowed'||e.error==='service-not-allowed'){
-      // Some Android builds report this transiently during an automatic restart. Retry slowly before giving up.
-      statusEl.textContent='Android rejected one auto-restart — retrying…';
-    }else{
-      statusEl.textContent=`Recognition error: ${e.error} — retrying…`;
-    }
-    render([]);
-  };
-  r.onend=()=>{
-    if(wanted&&!passed){restartCount++;statusEl.textContent='Session ended — restarting automatically…';render([]);scheduleStart(lastError==='not-allowed'||lastError==='service-not-allowed'?1200:300);}
-    else if(!passed){statusEl.textContent='Stopped.';startBtn.textContent='START LISTENING';startBtn.className='';}
-  };
-  return r;
 }
-
-async function detectLocalMode(){
-  localMode=false;
-  if(!StandardSR||typeof StandardSR.available!=='function'||!('processLocally' in StandardSR.prototype))return;
+async function startTilt(){
   try{
-    const availability=await StandardSR.available({langs:['en-US'],processLocally:true,quality:'dictation'});
-    heard.textContent='On-device dictation availability: '+availability;
-    if(availability==='available')localMode=true;
-  }catch(e){heard.textContent='On-device check unavailable; using normal browser speech service.';}
+    if(typeof DeviceOrientationEvent!=="undefined"&&typeof DeviceOrientationEvent.requestPermission==="function"){
+      var p=await DeviceOrientationEvent.requestPermission();if(p!=="granted")throw new Error("orientation permission denied");
+    }
+    if(typeof DeviceMotionEvent!=="undefined"&&typeof DeviceMotionEvent.requestPermission==="function"){
+      var p2=await DeviceMotionEvent.requestPermission();if(p2!=="granted")throw new Error("motion permission denied");
+    }
+    tiltEnabled=true;controlMode="tilt";needsCalibration=true;source="none";
+    $("startTilt").textContent="✓ TILT MODE ON";$("startTilt").classList.add("on");setModeButtons();
+    $("sensorStatus").innerHTML="<strong>Tilt ON.</strong> Hold the phone normally for calibration…";
+    $("live").textContent="sensor: waiting for first HTTPS sensor reading";
+    await startGenericAccel();
+    setTimeout(function(){if(source==="none")$("sensorStatus").innerHTML="<strong>No sensor data received.</strong> In Chrome, allow Motion sensors for this HTTPS site, then tap START TILT MODE again.";},1800);
+  }catch(e){$("sensorStatus").innerHTML="<strong>Sensor permission blocked.</strong> Check this site's Motion sensors permission in Chrome.";$("live").textContent=String(e.message||e)}
 }
-
-async function begin(){
-  correct=[];passed=false;wanted=true;restartCount=0;startCount=0;lastError='none';everStarted=false;startBtn.className='';statusEl.textContent='Checking phone speech engine…';render([]);
-  if(!SR){wanted=false;statusEl.textContent='SpeechRecognition is not supported in this browser.';return;}
-  await detectLocalMode();
-  recognition=buildRecognition();
-  if(!wanted)return;
-  try{recognition.start();}catch(e){lastError=e.name||'start-exception';statusEl.textContent='First start failed — retrying…';scheduleStart(700);render([]);}
-}
-
-startBtn.addEventListener('click',()=>{
-  if(passed){begin();return;}
-  if(wanted){wanted=false;clearTimeout(retryTimer);try{recognition.abort()}catch(e){};return;}
-  begin();
-});
-render([]);
+function setModeButtons(){$("tiltBtn").classList.toggle("active",controlMode==="tilt");$("touchBtn").classList.toggle("active",controlMode==="touch")}
+$("startTilt").addEventListener("click",startTilt);
+$("calibrate").addEventListener("click",function(){needsCalibration=true;$("sensorStatus").innerHTML="<strong>Calibrating…</strong> Hold the phone in your normal position."});
+$("flipY").addEventListener("click",function(){invertY=!invertY;$("flipY").textContent="Flip ↑↓: "+(invertY?"ON":"OFF")});
+$("tiltBtn").addEventListener("click",function(){controlMode="tilt";setModeButtons();$("sensorStatus").innerHTML=tiltEnabled?"<strong>Tilt active.</strong> Tip early to queue turns.":"<strong>Tilt is OFF.</strong> Tap START TILT MODE."});
+$("touchBtn").addEventListener("click",function(){controlMode="touch";setModeButtons();$("sensorStatus").innerHTML="<strong>Touch mode.</strong> D-pad/swipe steering is active."});
+document.querySelectorAll("[data-dir]").forEach(function(b){b.addEventListener("pointerdown",function(e){e.preventDefault();setDir(b.dataset.dir)})});
+var sx=0,sy=0;canvas.addEventListener("pointerdown",function(e){sx=e.clientX;sy=e.clientY});canvas.addEventListener("pointerup",function(e){var dx=e.clientX-sx,dy=e.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<16)return;if(Math.abs(dx)>Math.abs(dy))setDir(dx>0?"right":"left");else setDir(dy>0?"down":"up")});
+document.addEventListener("keydown",function(e){var m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",a:"left",d:"right",w:"up",s:"down"};if(m[e.key]){e.preventDefault();setDir(m[e.key])}});
+reset();setModeButtons();requestAnimationFrame(loop);
+})();
 </script>
-</body></html>
+</body>
+</html>
