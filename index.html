@@ -76,7 +76,7 @@ body.playing #gameScreen{display:block}
 
 <section id="gameScreen">
   <div id="hud">
-    <div id="ref">ROMANS 3:23 KJV <span style="font-size:9px;color:#6fffa0">v4</span></div>
+    <div id="ref">ROMANS 3:23 KJV <span style="font-size:9px;color:#6fffa0">v5 RENDER FIX</span></div>
     <div id="verseProgress"></div>
     <div id="miniStats"><span>♥ <b id="lives">3</b></span><span>★ <b id="score">0</b></span><span>⚡ <b id="power">0/4</b></span><button id="exitBtn">✕</button></div>
   </div>
@@ -111,10 +111,10 @@ var verse=["For","all","have","sinned,","and","come","short","of","the","glory",
 var keys=verse.map(function(v){return v.toLowerCase().replace(/[^a-z]/g,"")});
 var distractors=["some","people","world","always","shall","grace","good","they","were","unto","from","every","great","heaven","many","because","through"];
 var dirs={left:{x:-1,y:0},right:{x:1,y:0},up:{x:0,y:-1},down:{x:0,y:1}};
-var player,ghosts,targets,index=0,score=0,lives=3,streak=0,power=0,powerUntil=0,wrongUntil=0,running=false,last=0;
+var player,ghosts,targets=[],index=0,score=0,lives=3,streak=0,power=0,powerUntil=0,wrongUntil=0,running=false,last=0;
 var invertY=false,tiltEnabled=false,steeringArmed=false,needsCalibration=false,source="none";
 var baseX=0,baseY=0,lastX=0,lastY=0,orientationSeen=0,accelSeen=0,genericAccel=null;
-var dpr=1,cw=1,ch=1,tx=1,ty=1;
+var dpr=1,cw=1,ch=1,tx=1,ty=1,loopStarted=false;
 
 function resize(){
   dpr=Math.min(2,window.devicePixelRatio||1);
@@ -253,7 +253,7 @@ function draw(now){
   targets.forEach(function(t){
     var x=(t.c+.5)*tx,y=(t.r+.5)*ty,correct=t.word===keys[index],fs=Math.max(11*dpr,Math.min(tx*.36,ty*.33));
     ctx.font="900 "+fs+"px system-ui";var w=Math.max(tx*.66,ctx.measureText(t.word).width+10*dpr),h=Math.min(ty*.58,22*dpr);
-    ctx.fillStyle=correct?"#ffe357":"#f4f6ff";ctx.beginPath();ctx.roundRect(x-w/2,y-h/2,w,h,6*dpr);ctx.fill();
+    ctx.fillStyle=correct?"#ffe357":"#f4f6ff";ctx.fillRect(x-w/2,y-h/2,w,h);
     ctx.fillStyle="#10131d";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(t.word,x,y);
   });
   ghosts.forEach(function(g){
@@ -264,7 +264,25 @@ function draw(now){
   var px=(player.c+.5)*tx,py=(player.r+.5)*ty,rad=Math.min(tx,ty)*.39,ang=player.dir.x<0?Math.PI:player.dir.y<0?-Math.PI/2:player.dir.y>0?Math.PI/2:0,m=.15+.14*(.5+.5*Math.sin(player.mouth));
   ctx.save();ctx.translate(px,py);ctx.rotate(ang);ctx.fillStyle="#ffd93d";ctx.shadowBlur=12*dpr;ctx.shadowColor="#ffd93d88";ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,rad,m*Math.PI,(2-m)*Math.PI);ctx.closePath();ctx.fill();ctx.restore();
 }
-function loop(ts){var dt=Math.min(.035,(ts-last)/1000||0);last=ts;update(dt,ts);draw(ts);requestAnimationFrame(loop)}
+function loop(ts){
+  try{
+    var dt=Math.min(.035,(ts-last)/1000||0);
+    last=ts;
+    update(dt,ts);
+    draw(ts);
+  }catch(e){
+    console.error("Verse Chomp frame error",e);
+    $("flash").textContent="GAME ERROR: "+(e&&e.message?e.message:String(e));
+    $("flash").className="show bad";
+  }
+  requestAnimationFrame(loop);
+}
+function ensureLoop(){
+  if(loopStarted)return;
+  loopStarted=true;
+  last=performance.now();
+  requestAnimationFrame(loop);
+}
 
 function screenAngle(){
   var a=0;
@@ -331,6 +349,7 @@ async function startGame(){
     document.body.classList.add("playing");
     resizeGameSeveralTimes();
     resetGame();
+    ensureLoop();
 
     // Then enter fullscreen / landscape and resize again after the browser settles.
     await enterFullscreenLandscape();
@@ -356,7 +375,7 @@ var sx=0,sy=0;
 canvas.addEventListener("pointerdown",function(e){sx=e.clientX;sy=e.clientY});
 canvas.addEventListener("pointerup",function(e){var dx=e.clientX-sx,dy=e.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<18)return;if(Math.abs(dx)>Math.abs(dy))setDir(dx>0?"right":"left");else setDir(dy>0?"down":"up")});
 document.addEventListener("keydown",function(e){var m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",a:"left",d:"right",w:"up",s:"down"};if(m[e.key]){e.preventDefault();setDir(m[e.key])}});
-resize();makeActors();updateHud();requestAnimationFrame(loop);
+resize();makeActors();updateHud();
 })();
 </script>
 </body>
