@@ -21,13 +21,16 @@ button,input{font:inherit}
 input[type=range]{width:180px;accent-color:var(--gold)}
 .toggle{border:1px solid #40558d;background:#111a36;color:#eef2ff;border-radius:11px;padding:9px 11px;font-weight:900}
 .toggle.on{background:#263b78;border-color:#7592ff}
+.controlChoice{display:flex;gap:8px;margin-top:8px}
+.controlChoice button{flex:1;border:1px solid #40558d;background:#111a36;color:#dce5ff;border-radius:12px;padding:11px 10px;font-weight:1000}
+.controlChoice button.active{background:#2a4184;border-color:#7b98ff;color:#fff;box-shadow:0 0 18px #5576ff44}
 .sensorCheck{padding:11px;border-radius:12px;background:#070b18;border:1px solid #2d3e70;color:#9fb0dc;font-size:12px;line-height:1.4}
 .sensorCheck b{color:#fff}
 .startGame{width:100%;border:0;border-radius:16px;padding:16px 14px;background:linear-gradient(#ffe975,#ffc627);color:#171100;font-size:20px;font-weight:1000;box-shadow:0 0 28px #ffd64055}
 .startGame:active{transform:scale(.99)}
 .note{font-size:11px;line-height:1.45;color:#8391b8;margin-top:10px;text-align:center}
 
-#gameScreen{display:none;position:fixed;inset:0;background:#020309}
+#gameScreen{display:none;position:fixed;inset:0;background:#020309;touch-action:none;user-select:none;-webkit-user-select:none}
 #hud{position:absolute;left:0;right:0;top:0;height:42px;z-index:10;background:rgba(5,8,18,.94);border-bottom:1px solid #2c407b;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:0 9px}
 #ref{font-size:13px;font-weight:1000;letter-spacing:.07em;white-space:nowrap;color:#dfe6ff}
 #verseProgress{font-size:clamp(13px,2.2vw,18px);font-weight:900;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:center}
@@ -54,29 +57,36 @@ body.playing #gameScreen{display:block}
 <section id="setupScreen">
   <div class="setupWrap">
     <div class="logo"><b>VERSE</b> CHOMP</div>
-    <div class="sub">Romans 3:23 KJV • Tilt-controlled Bible memory maze</div>
+    <div class="sub">Romans 3:23 KJV • Fullscreen Bible memory maze</div>
 
     <div class="card">
       <h2>GAME SETUP</h2>
-      <div class="setting">
+      <div class="setting" style="display:block">
+        <div><strong>Control method</strong><small>Swipe anywhere on the game screen, or use phone tilt</small></div>
+        <div class="controlChoice">
+          <button id="swipeModeBtn" class="active">👆 SWIPE</button>
+          <button id="tiltModeBtn">📱 TILT</button>
+        </div>
+      </div>
+      <div class="setting tiltOnly">
         <div><strong>Tilt sensitivity</strong><small>How far you tip before a turn is queued</small></div>
         <input id="sensitivity" type="range" min="4" max="16" value="10">
       </div>
-      <div class="setting">
+      <div class="setting tiltOnly">
         <div><strong>Reverse up/down</strong><small>Use this only if forward/back feels backwards</small></div>
         <button id="invertBtn" class="toggle">OFF</button>
       </div>
-      <div class="sensorCheck" id="setupStatus"><b>Ready.</b> Tap Start Game. Chrome will enable the phone sensor, calibrate after you turn the phone sideways, and start the maze.</div>
+      <div class="sensorCheck" id="setupStatus"><b>Swipe mode ready.</b> Swipe anywhere on the fullscreen game. Your direction stays queued until Pac-Man can turn that way.</div>
     </div>
 
     <button id="startGame" class="startGame">START GAME</button>
-    <div class="note">After tapping Start, hold the phone in landscape. The maze uses the entire screen below one thin verse strip.</div>
+    <div class="note">After tapping Start, hold the phone in landscape. Swipe left/right/up/down anywhere on the game screen to queue the next turn.</div>
   </div>
 </section>
 
 <section id="gameScreen">
   <div id="hud">
-    <div id="ref">ROMANS 3:23 KJV <span style="font-size:9px;color:#6fffa0">v5 RENDER FIX</span></div>
+    <div id="ref">ROMANS 3:23 KJV <span style="font-size:9px;color:#6fffa0">v6 SWIPE</span></div>
     <div id="verseProgress"></div>
     <div id="miniStats"><span>♥ <b id="lives">3</b></span><span>★ <b id="score">0</b></span><span>⚡ <b id="power">0/4</b></span><button id="exitBtn">✕</button></div>
   </div>
@@ -112,9 +122,9 @@ var keys=verse.map(function(v){return v.toLowerCase().replace(/[^a-z]/g,"")});
 var distractors=["some","people","world","always","shall","grace","good","they","were","unto","from","every","great","heaven","many","because","through"];
 var dirs={left:{x:-1,y:0},right:{x:1,y:0},up:{x:0,y:-1},down:{x:0,y:1}};
 var player,ghosts,targets=[],index=0,score=0,lives=3,streak=0,power=0,powerUntil=0,wrongUntil=0,running=false,last=0;
-var invertY=false,tiltEnabled=false,steeringArmed=false,needsCalibration=false,source="none";
+var controlMode="swipe",invertY=false,tiltEnabled=false,steeringArmed=false,needsCalibration=false,source="none";
 var baseX=0,baseY=0,lastX=0,lastY=0,orientationSeen=0,accelSeen=0,genericAccel=null;
-var dpr=1,cw=1,ch=1,tx=1,ty=1,loopStarted=false;
+var dpr=1,cw=1,ch=1,tx=1,ty=1,loopStarted=false,swipeStartX=0,swipeStartY=0,swipePointerId=null;
 
 function resize(){
   dpr=Math.min(2,window.devicePixelRatio||1);
@@ -300,8 +310,13 @@ function rotateAxes(x,y){
 function showTurn(n){
   var map={left:"←",right:"→",up:"↑",down:"↓",neutral:"•"};$("turnIndicator").textContent=map[n]||"•";
 }
+function queueSwipeDirection(n){
+  if(!dirs[n]||!player)return;
+  setDir(n);
+  showTurn(n);
+}
 function steer(x,y,scale){
-  if(!tiltEnabled||!steeringArmed)return;
+  if(controlMode!=="tilt"||!tiltEnabled||!steeringArmed)return;
   var a=rotateAxes(x,y);lastX=a.x;lastY=a.y;
   if(needsCalibration){baseX=a.x;baseY=a.y;needsCalibration=false;showTurn("neutral");return}
   var dx=a.x-baseX,dy=a.y-baseY,threshold=scale==="degrees"?(20-Number($("sensitivity").value)):Math.max(.65,(20-Number($("sensitivity").value))*.15);
@@ -341,24 +356,29 @@ async function enterFullscreenLandscape(){
   try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock("landscape")}catch(e){}
 }
 async function startGame(){
-  $("setupStatus").innerHTML="<b>Starting…</b> Enabling motion sensor and landscape game.";
+  $("setupStatus").innerHTML="<b>Starting…</b> Opening fullscreen landscape game.";
   try{
-    await enableSensors();
+    if(controlMode==="tilt"){
+      await enableSensors();
+    }else{
+      tiltEnabled=false;
+      steeringArmed=false;
+    }
 
-    // Show the game FIRST so the canvas has real dimensions.
     document.body.classList.add("playing");
     resizeGameSeveralTimes();
     resetGame();
     ensureLoop();
 
-    // Then enter fullscreen / landscape and resize again after the browser settles.
     await enterFullscreenLandscape();
     resizeGameSeveralTimes();
     setTimeout(resizeGameSeveralTimes,500);
-    armCalibration();
+
+    if(controlMode==="tilt") armCalibration();
+    else showTurn("neutral");
   }catch(e){
     document.body.classList.remove("playing");
-    $("setupStatus").innerHTML="<b>Motion sensor blocked.</b> "+String(e.message||e)+". Check Chrome site permissions and try again.";
+    $("setupStatus").innerHTML="<b>Could not start tilt mode.</b> "+String(e.message||e)+". Choose Swipe mode or check Chrome motion permissions.";
   }
 }
 function exitGame(){
@@ -367,15 +387,48 @@ function exitGame(){
   try{if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen()}catch(e){}
 }
 
+function refreshControlSetup(){
+  $("swipeModeBtn").classList.toggle("active",controlMode==="swipe");
+  $("tiltModeBtn").classList.toggle("active",controlMode==="tilt");
+  document.querySelectorAll(".tiltOnly").forEach(function(el){
+    el.style.opacity=controlMode==="tilt"?"1":".38";
+    el.style.pointerEvents=controlMode==="tilt"?"auto":"none";
+  });
+  $("setupStatus").innerHTML=controlMode==="swipe"
+    ? "<b>Swipe mode ready.</b> Swipe anywhere on the fullscreen game. The direction stays queued until that turn opens."
+    : "<b>Tilt mode ready.</b> Start the game, then tip the phone toward the direction you want queued.";
+}
+$("swipeModeBtn").addEventListener("click",function(){controlMode="swipe";refreshControlSetup()});
+$("tiltModeBtn").addEventListener("click",function(){controlMode="tilt";refreshControlSetup()});
 $("invertBtn").addEventListener("click",function(){invertY=!invertY;this.textContent=invertY?"ON":"OFF";this.classList.toggle("on",invertY)});
 $("startGame").addEventListener("click",startGame);
 $("exitBtn").addEventListener("click",exitGame);
 
-var sx=0,sy=0;
-canvas.addEventListener("pointerdown",function(e){sx=e.clientX;sy=e.clientY});
-canvas.addEventListener("pointerup",function(e){var dx=e.clientX-sx,dy=e.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<18)return;if(Math.abs(dx)>Math.abs(dy))setDir(dx>0?"right":"left");else setDir(dy>0?"down":"up")});
+var gameScreen=$("gameScreen");
+gameScreen.addEventListener("pointerdown",function(e){
+  if(controlMode!=="swipe")return;
+  if(e.target && e.target.id==="exitBtn")return;
+  swipePointerId=e.pointerId;
+  swipeStartX=e.clientX;
+  swipeStartY=e.clientY;
+  try{gameScreen.setPointerCapture(e.pointerId)}catch(err){}
+});
+gameScreen.addEventListener("pointermove",function(e){
+  if(controlMode==="swipe"&&swipePointerId===e.pointerId)e.preventDefault();
+},{passive:false});
+gameScreen.addEventListener("pointerup",function(e){
+  if(controlMode!=="swipe"||swipePointerId!==e.pointerId)return;
+  var dx=e.clientX-swipeStartX,dy=e.clientY-swipeStartY;
+  swipePointerId=null;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<22)return;
+  if(Math.abs(dx)>Math.abs(dy))queueSwipeDirection(dx>0?"right":"left");
+  else queueSwipeDirection(dy>0?"down":"up");
+});
+gameScreen.addEventListener("pointercancel",function(e){
+  if(swipePointerId===e.pointerId)swipePointerId=null;
+});
 document.addEventListener("keydown",function(e){var m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",a:"left",d:"right",w:"up",s:"down"};if(m[e.key]){e.preventDefault();setDir(m[e.key])}});
-resize();makeActors();updateHud();
+resize();makeActors();updateHud();refreshControlSetup();
 })();
 </script>
 </body>
