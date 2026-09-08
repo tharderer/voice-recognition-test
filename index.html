@@ -76,7 +76,7 @@ body.playing #gameScreen{display:block}
 
 <section id="gameScreen">
   <div id="hud">
-    <div id="ref">ROMANS 3:23 KJV</div>
+    <div id="ref">ROMANS 3:23 KJV <span style="font-size:9px;color:#6fffa0">v4</span></div>
     <div id="verseProgress"></div>
     <div id="miniStats"><span>♥ <b id="lives">3</b></span><span>★ <b id="score">0</b></span><span>⚡ <b id="power">0/4</b></span><button id="exitBtn">✕</button></div>
   </div>
@@ -117,14 +117,40 @@ var baseX=0,baseY=0,lastX=0,lastY=0,orientationSeen=0,accelSeen=0,genericAccel=n
 var dpr=1,cw=1,ch=1,tx=1,ty=1;
 
 function resize(){
-  var r=canvas.getBoundingClientRect();
   dpr=Math.min(2,window.devicePixelRatio||1);
-  canvas.width=Math.max(1,Math.round(r.width*dpr));
-  canvas.height=Math.max(1,Math.round(r.height*dpr));
-  cw=canvas.width;ch=canvas.height;tx=cw/COLS;ty=ch/ROWS;
+
+  // Never trust a hidden canvas' previous bounding box. In game mode,
+  // derive the drawing surface directly from the actual viewport.
+  var cssW = document.body.classList.contains("playing") ? window.innerWidth : Math.max(1, canvas.clientWidth || window.innerWidth);
+  var cssH = document.body.classList.contains("playing") ? Math.max(1, window.innerHeight - 42) : Math.max(1, canvas.clientHeight || 1);
+
+  canvas.style.width = cssW + "px";
+  canvas.style.height = cssH + "px";
+  canvas.width = Math.max(1,Math.round(cssW*dpr));
+  canvas.height = Math.max(1,Math.round(cssH*dpr));
+
+  cw=canvas.width;
+  ch=canvas.height;
+  tx=cw/COLS;
+  ty=ch/ROWS;
 }
-window.addEventListener("resize",function(){resize();});
-window.addEventListener("orientationchange",function(){setTimeout(function(){resize();if(document.body.classList.contains("playing"))armCalibration();},350);});
+function resizeGameSeveralTimes(){
+  resize();
+  requestAnimationFrame(resize);
+  setTimeout(resize,120);
+  setTimeout(resize,350);
+  setTimeout(resize,700);
+}
+window.addEventListener("resize",function(){
+  if(document.body.classList.contains("playing")) resizeGameSeveralTimes();
+  else resize();
+});
+window.addEventListener("orientationchange",function(){
+  setTimeout(function(){
+    resizeGameSeveralTimes();
+    if(document.body.classList.contains("playing")) armCalibration();
+  },220);
+});
 
 function wall(c,r){return r<0||c<0||r>=ROWS||c>=COLS||maze[r][c]==="#"}
 var open=[];
@@ -300,9 +326,19 @@ async function startGame(){
   $("setupStatus").innerHTML="<b>Starting…</b> Enabling motion sensor and landscape game.";
   try{
     await enableSensors();
+
+    // Show the game FIRST so the canvas has real dimensions.
+    document.body.classList.add("playing");
+    resizeGameSeveralTimes();
+    resetGame();
+
+    // Then enter fullscreen / landscape and resize again after the browser settles.
     await enterFullscreenLandscape();
-    document.body.classList.add("playing");resize();resetGame();armCalibration();
+    resizeGameSeveralTimes();
+    setTimeout(resizeGameSeveralTimes,500);
+    armCalibration();
   }catch(e){
+    document.body.classList.remove("playing");
     $("setupStatus").innerHTML="<b>Motion sensor blocked.</b> "+String(e.message||e)+". Check Chrome site permissions and try again.";
   }
 }
