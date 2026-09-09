@@ -42,7 +42,15 @@ input[type=range]{width:180px;accent-color:var(--gold)}
 #gameCanvas{position:absolute;left:0;right:0;bottom:0;top:42px;width:100vw;height:calc(100vh - 42px);display:block;background:#020309;touch-action:none}
 #flash{position:absolute;z-index:12;left:50%;top:54%;transform:translate(-50%,-50%);padding:9px 15px;border-radius:999px;background:#070c21e8;border:1px solid #728cff;color:#fff;font-weight:1000;opacity:0;pointer-events:none;transition:.15s}
 #flash.show{opacity:1}#flash.bad{border-color:var(--bad);color:#ffabb7}#flash.good{border-color:var(--good);color:#9affbb}
-#turnIndicator{position:absolute;z-index:11;left:8px;bottom:8px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#050916cc;border:1px solid #3f5594;color:var(--gold);font-size:29px;font-weight:1000;pointer-events:none}
+#turnIndicator{position:absolute;z-index:11;left:8px;bottom:8px;width:44px;height:44px;border-radius:50%;display:none;place-items:center;background:#050916cc;border:1px solid #3f5594;color:var(--gold);font-size:29px;font-weight:1000;pointer-events:none}
+#joystick{position:absolute;z-index:15;left:18px;bottom:18px;width:132px;height:132px;border-radius:50%;background:rgba(8,13,31,.62);border:2px solid rgba(132,157,255,.50);box-shadow:inset 0 0 30px #516dff22,0 8px 28px #0008;touch-action:none;display:none}
+#joystick::before,#joystick::after{content:"";position:absolute;background:rgba(181,197,255,.18);pointer-events:none}
+#joystick::before{left:50%;top:11%;bottom:11%;width:1px}
+#joystick::after{top:50%;left:11%;right:11%;height:1px}
+#stickKnob{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:linear-gradient(#ffdF55,#ffbf22);border:3px solid #fff3a4;box-shadow:0 5px 14px #0009,0 0 20px #ffd94f66;pointer-events:none;transform:translate(0,0);transition:transform .05s linear}
+#stickDir{position:absolute;inset:0;display:grid;place-items:center;color:#151000;font-size:29px;font-weight:1000;pointer-events:none}
+body.joystick-mode #joystick{display:block}
+body.joystick-mode #turnIndicator{display:none}
 #rotateOverlay{display:none;position:absolute;z-index:30;inset:42px 0 0;background:#040611f3;place-items:center;text-align:center;padding:30px}
 #rotateOverlay .phone{font-size:58px;transform:rotate(90deg);margin-bottom:12px}
 #rotateOverlay h2{margin:0 0 6px;font-size:24px}#rotateOverlay p{margin:0;color:#9eacd3;font-weight:700}
@@ -62,9 +70,10 @@ body.playing #gameScreen{display:block}
     <div class="card">
       <h2>GAME SETUP</h2>
       <div class="setting" style="display:block">
-        <div><strong>Control method</strong><small>Swipe anywhere on the game screen, or use phone tilt</small></div>
+        <div><strong>Control method</strong><small>Arcade joystick is the recommended mode</small></div>
         <div class="controlChoice">
-          <button id="swipeModeBtn" class="active">👆 SWIPE</button>
+          <button id="joystickModeBtn" class="active">🕹️ JOYSTICK</button>
+          <button id="swipeModeBtn">👆 SWIPE</button>
           <button id="tiltModeBtn">📱 TILT</button>
         </div>
       </div>
@@ -84,23 +93,24 @@ body.playing #gameScreen{display:block}
         <div><strong>Music volume</strong><small>Retro arcade synth + reactive game cues</small></div>
         <input id="musicVolume" type="range" min="0" max="100" value="58">
       </div>
-      <div class="sensorCheck" id="setupStatus"><b>Swipe mode ready.</b> Swipe anywhere on the fullscreen game. Your direction stays queued until Pac-Man can turn that way.</div>
+      <div class="sensorCheck" id="setupStatus"><b>Joystick mode ready.</b> Hold the thumb stick toward the direction you want. Pac-Man will take that turn as soon as it opens.</div>
     </div>
 
     <button id="startGame" class="startGame">START GAME</button>
-    <div class="note">After tapping Start, hold the phone in landscape. Swipe left/right/up/down anywhere on the game screen to queue the next turn.</div>
+    <div class="note">After tapping Start, hold the phone in landscape. The thumb joystick works like classic Pac-Man: hold a direction before the intersection and Pac-Man takes the turn automatically.</div>
   </div>
 </section>
 
 <section id="gameScreen">
   <div id="hud">
-    <div id="ref">ROMANS 3:23 KJV <span style="font-size:9px;color:#6fffa0">v7 ADAPTIVE MUSIC</span></div>
+    <div id="ref">ROMANS 3:23 KJV <span style="font-size:9px;color:#6fffa0">v8 ARCADE JOYSTICK</span></div>
     <div id="verseProgress"></div>
     <div id="miniStats"><span>♥ <b id="lives">3</b></span><span>★ <b id="score">0</b></span><span>⚡ <b id="power">0/4</b></span><button id="exitBtn">✕</button></div>
   </div>
   <canvas id="gameCanvas"></canvas>
   <div id="flash"></div>
   <div id="turnIndicator">•</div>
+  <div id="joystick"><div id="stickKnob"><div id="stickDir">•</div></div></div>
   <div id="rotateOverlay">
     <div><div class="phone">📱</div><h2>Turn Your Phone Sideways</h2><p>Verse Chomp is built to fill the whole landscape screen.</p></div>
   </div>
@@ -129,10 +139,10 @@ var verse=["For","all","have","sinned,","and","come","short","of","the","glory",
 var keys=verse.map(function(v){return v.toLowerCase().replace(/[^a-z]/g,"")});
 var distractors=["some","people","world","always","shall","grace","good","they","were","unto","from","every","great","heaven","many","because","through"];
 var dirs={left:{x:-1,y:0},right:{x:1,y:0},up:{x:0,y:-1},down:{x:0,y:1}};
-var player,ghosts,targets=[],index=0,score=0,lives=3,streak=0,power=0,powerUntil=0,wrongUntil=0,running=false,last=0;
-var controlMode="swipe",invertY=false,tiltEnabled=false,steeringArmed=false,needsCalibration=false,source="none";
+var player,ghosts,targets=[],index=0,score=0,lives=5,streak=0,power=0,powerUntil=0,wrongUntil=0,invulnerableUntil=0,running=false,last=0;
+var controlMode="joystick",invertY=false,tiltEnabled=false,steeringArmed=false,needsCalibration=false,source="none";
 var baseX=0,baseY=0,lastX=0,lastY=0,orientationSeen=0,accelSeen=0,genericAccel=null;
-var dpr=1,cw=1,ch=1,tx=1,ty=1,loopStarted=false,swipeStartX=0,swipeStartY=0,swipePointerId=null;
+var dpr=1,cw=1,ch=1,tx=1,ty=1,loopStarted=false,swipeStartX=0,swipeStartY=0,swipePointerId=null,joyPointerId=null;
 
 var musicEnabled=true,musicVolume=.58,musicActive=false;
 var audioCtx=null,musicMaster=null,musicFilter=null,musicComp=null,noiseBuffer=null;
@@ -181,7 +191,7 @@ function gameIntensity(){
   for(var i=0;i<ghosts.length;i++)nearest=Math.min(nearest,dist(player,ghosts[i]));
   var danger=clamp((8-nearest)/7,0,1);
   var streakHeat=clamp(streak/5,0,1);
-  var lowLife=clamp((3-lives)/2,0,1);
+  var lowLife=clamp((5-lives)/4,0,1);
   var wrongHeat=performance.now()<wrongUntil?1:0;
   var powered=performance.now()<powerUntil?1:0;
   return clamp(.10+progress*.25+danger*.42+streakHeat*.08+lowLife*.08+wrongHeat*.12+powered*.13,0,1);
@@ -358,7 +368,17 @@ var open=[];
 for(var rr=0;rr<ROWS;rr++)for(var cc=0;cc<COLS;cc++)if(!wall(cc,rr))open.push({c:cc,r:rr});
 function can(c,r,d){return !wall(Math.round(c)+d.x,Math.round(r)+d.y)}
 function dist(a,b){return Math.hypot(a.c-b.c,a.r-b.r)}
-function setDir(n){if(dirs[n])player.want={x:dirs[n].x,y:dirs[n].y}}
+function setDir(n){
+  if(!dirs[n]||!player)return;
+  var d=dirs[n];
+  player.want={x:d.x,y:d.y};
+
+  // Classic Pac-Man feel: reversing in a corridor happens immediately.
+  if(player.dir && d.x===-player.dir.x && d.y===-player.dir.y){
+    player.dir={x:d.x,y:d.y};
+    player.lastCenter="";
+  }
+}
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function randomOpen(ex){
   for(var i=0;i<150;i++){var p=open[Math.floor(Math.random()*open.length)],bad=ex.some(function(q){return Math.abs(p.c-q.c)+Math.abs(p.r-q.r)<2});if(!bad)return {c:p.c,r:p.r}}
@@ -367,9 +387,8 @@ function randomOpen(ex){
 function makeActors(){
   player={c:13,r:9,dir:{x:0,y:0},want:{x:0,y:0},mouth:0,lastCenter:""};
   ghosts=[
-    {c:1,r:1,dir:{x:1,y:0},speed:2.85,color:"#ff4c67",home:{c:1,r:1},lastCenter:""},
-    {c:25,r:1,dir:{x:-1,y:0},speed:2.70,color:"#44ddff",home:{c:25,r:1},lastCenter:""},
-    {c:13,r:5,dir:{x:1,y:0},speed:2.58,color:"#ff78d0",home:{c:13,r:5},lastCenter:""}
+    {c:1,r:1,dir:{x:1,y:0},speed:1.72,color:"#ff4c67",home:{c:1,r:1},lastCenter:""},
+    {c:25,r:1,dir:{x:-1,y:0},speed:1.62,color:"#44ddff",home:{c:25,r:1},lastCenter:""}
   ];
 }
 function spawnTargets(){
@@ -381,7 +400,7 @@ function spawnTargets(){
   targets=words.map(function(w){var p=randomOpen(used);used.push(p);return {word:w,c:p.c,r:p.r,pulse:Math.random()*6.28}});
 }
 function resetGame(){
-  index=0;score=0;lives=3;streak=0;power=0;powerUntil=0;wrongUntil=0;makeActors();spawnTargets();running=true;updateHud();
+  index=0;score=0;lives=5;streak=0;power=0;powerUntil=0;wrongUntil=0;invulnerableUntil=performance.now()+1400;makeActors();spawnTargets();running=true;updateHud();
 }
 function updateHud(){
   $("score").textContent=score;$("lives").textContent=lives;$("power").textContent=performance.now()<powerUntil?"ON":power+"/4";
@@ -396,18 +415,19 @@ function flash(text,bad){
 function collect(t,now){
   if(t.word===keys[index]){
     score+=100+streak*10;streak++;index++;power++;flash("✓ "+t.word.toUpperCase(),false);sfx("correct");
-    if(power>=4){power=0;powerUntil=now+6500;score+=250;flash("VERSE POWER!",false);sfx("power")}
+    if(power>=4){power=0;powerUntil=now+9000;score+=250;flash("VERSE POWER!",false);sfx("power")}
     if(index>=keys.length){score+=1000;running=false;flash("VERSE COMPLETE!",false);sfx("complete")}
     else spawnTargets();
   }else{
-    streak=0;score=Math.max(0,score-50);wrongUntil=now+3000;flash("WRONG WORD",true);sfx("wrong");
+    streak=0;score=Math.max(0,score-20);wrongUntil=now+900;flash("WRONG WORD",true);sfx("wrong");
   }
   updateHud();
 }
 function hitGhost(g,now){
+  if(now<invulnerableUntil)return;
   if(now<powerUntil){score+=500;g.c=g.home.c;g.r=g.home.r;g.lastCenter="";flash("GHOST CHOMP +500",false);sfx("eatghost");updateHud();return}
   lives--;streak=0;flash("GHOST GOT YOU",true);sfx("ghost");updateHud();
-  if(lives<=0){running=false;setTimeout(resetGame,1000)}else{makeActors();spawnTargets()}
+  if(lives<=0){running=false;setTimeout(resetGame,1000)}else{makeActors();spawnTargets();invulnerableUntil=now+1600}
 }
 function stepPlayer(dt){
   var rc=Math.round(player.c),rr=Math.round(player.r),near=Math.abs(player.c-rc)<.11&&Math.abs(player.r-rr)<.11,key=rc+","+rr;
@@ -418,7 +438,7 @@ function stepPlayer(dt){
     if(!can(rc,rr,player.dir))player.dir={x:0,y:0};
     player.lastCenter=key;
   }
-  player.c+=player.dir.x*4.25*dt;player.r+=player.dir.y*4.25*dt;player.mouth+=dt*13;
+  player.c+=player.dir.x*5.0*dt;player.r+=player.dir.y*5.0*dt;player.mouth+=dt*13;
 }
 function ghostDir(g,now){
   var opts=Object.keys(dirs).map(function(k){return dirs[k]}).filter(function(d){return can(g.c,g.r,d)});
@@ -430,7 +450,7 @@ function ghostDir(g,now){
 function stepGhost(g,dt,now){
   var rc=Math.round(g.c),rr=Math.round(g.r),near=Math.abs(g.c-rc)<.11&&Math.abs(g.r-rr)<.11,key=rc+","+rr;
   if(near&&g.lastCenter!==key){g.c=rc;g.r=rr;g.dir=ghostDir(g,now)||{x:0,y:0};g.lastCenter=key}
-  var sp=g.speed*(now<wrongUntil?1.3:1)*(now<powerUntil?.72:1);g.c+=g.dir.x*sp*dt;g.r+=g.dir.y*sp*dt;
+  var sp=g.speed*(now<powerUntil?.68:1);g.c+=g.dir.x*sp*dt;g.r+=g.dir.y*sp*dt;
 }
 function update(dt,now){
   if(!running)return;
@@ -463,7 +483,7 @@ function draw(now){
     ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(x-rad*.32,y-rad*.18,rad*.23,0,Math.PI*2);ctx.arc(x+rad*.32,y-rad*.18,rad*.23,0,Math.PI*2);ctx.fill();
   });
   var px=(player.c+.5)*tx,py=(player.r+.5)*ty,rad=Math.min(tx,ty)*.39,ang=player.dir.x<0?Math.PI:player.dir.y<0?-Math.PI/2:player.dir.y>0?Math.PI/2:0,m=.15+.14*(.5+.5*Math.sin(player.mouth));
-  ctx.save();ctx.translate(px,py);ctx.rotate(ang);ctx.fillStyle="#ffd93d";ctx.shadowBlur=12*dpr;ctx.shadowColor="#ffd93d88";ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,rad,m*Math.PI,(2-m)*Math.PI);ctx.closePath();ctx.fill();ctx.restore();
+  ctx.save();ctx.translate(px,py);ctx.rotate(ang);ctx.globalAlpha=(now<invulnerableUntil&&Math.floor(now/100)%2)?0.45:1;ctx.fillStyle="#ffd93d";ctx.shadowBlur=12*dpr;ctx.shadowColor="#ffd93d88";ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,rad,m*Math.PI,(2-m)*Math.PI);ctx.closePath();ctx.fill();ctx.restore();
 }
 function loop(ts){
   try{
@@ -557,7 +577,7 @@ async function startGame(){
       steeringArmed=false;
     }
 
-    document.body.classList.add("playing");
+    document.body.classList.add("playing");document.body.classList.toggle("joystick-mode",controlMode==="joystick");
     resizeGameSeveralTimes();
     resetGame();
     ensureLoop();
@@ -574,22 +594,26 @@ async function startGame(){
   }
 }
 function exitGame(){
-  running=false;steeringArmed=false;stopMusic();document.body.classList.remove("playing");
+  running=false;steeringArmed=false;stopMusic();document.body.classList.remove("playing","joystick-mode");
   try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(e){}
   try{if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen()}catch(e){}
 }
 
 function refreshControlSetup(){
+  $("joystickModeBtn").classList.toggle("active",controlMode==="joystick");
   $("swipeModeBtn").classList.toggle("active",controlMode==="swipe");
   $("tiltModeBtn").classList.toggle("active",controlMode==="tilt");
   document.querySelectorAll(".tiltOnly").forEach(function(el){
     el.style.opacity=controlMode==="tilt"?"1":".38";
     el.style.pointerEvents=controlMode==="tilt"?"auto":"none";
   });
-  $("setupStatus").innerHTML=controlMode==="swipe"
-    ? "<b>Swipe mode ready.</b> Swipe anywhere on the fullscreen game. The direction stays queued until that turn opens."
-    : "<b>Tilt mode ready.</b> Start the game, then tip the phone toward the direction you want queued.";
+  $("setupStatus").innerHTML=controlMode==="joystick"
+    ? "<b>Joystick mode ready.</b> Hold the stick toward the next turn before the intersection. Pac-Man turns automatically when it opens."
+    : controlMode==="swipe"
+      ? "<b>Swipe mode ready.</b> Swipe anywhere to queue the next turn."
+      : "<b>Tilt mode ready.</b> Start the game, then tip the phone toward the direction you want queued.";
 }
+$("joystickModeBtn").addEventListener("click",function(){controlMode="joystick";refreshControlSetup()});
 $("swipeModeBtn").addEventListener("click",function(){controlMode="swipe";refreshControlSetup()});
 $("tiltModeBtn").addEventListener("click",function(){controlMode="tilt";refreshControlSetup()});
 $("musicBtn").addEventListener("click",function(){
@@ -607,6 +631,47 @@ $("musicVolume").addEventListener("input",function(){
 $("invertBtn").addEventListener("click",function(){invertY=!invertY;this.textContent=invertY?"ON":"OFF";this.classList.toggle("on",invertY)});
 $("startGame").addEventListener("click",startGame);
 $("exitBtn").addEventListener("click",exitGame);
+
+
+var joystick=$("joystick"),stickKnob=$("stickKnob"),stickDir=$("stickDir");
+function resetStickVisual(){
+  stickKnob.style.transform="translate(0px,0px)";
+  stickDir.textContent="•";
+}
+function updateStickFromPointer(e){
+  var r=joystick.getBoundingClientRect();
+  var cx=r.left+r.width/2,cy=r.top+r.height/2;
+  var dx=e.clientX-cx,dy=e.clientY-cy;
+  var mag=Math.hypot(dx,dy);
+  var max=r.width*.31;
+  if(mag>max){dx=dx/mag*max;dy=dy/mag*max}
+  stickKnob.style.transform="translate("+dx+"px,"+dy+"px)";
+
+  if(Math.max(Math.abs(dx),Math.abs(dy))<12){stickDir.textContent="•";return}
+  var n=Math.abs(dx)>Math.abs(dy)?(dx>0?"right":"left"):(dy>0?"down":"up");
+  var arrows={left:"←",right:"→",up:"↑",down:"↓"};
+  stickDir.textContent=arrows[n];
+  setDir(n);
+}
+joystick.addEventListener("pointerdown",function(e){
+  if(controlMode!=="joystick")return;
+  e.preventDefault();e.stopPropagation();
+  joyPointerId=e.pointerId;
+  try{joystick.setPointerCapture(e.pointerId)}catch(err){}
+  updateStickFromPointer(e);
+});
+joystick.addEventListener("pointermove",function(e){
+  if(controlMode!=="joystick"||joyPointerId!==e.pointerId)return;
+  e.preventDefault();e.stopPropagation();
+  updateStickFromPointer(e);
+},{passive:false});
+function endJoystick(e){
+  if(joyPointerId!==e.pointerId)return;
+  joyPointerId=null;
+  resetStickVisual();
+}
+joystick.addEventListener("pointerup",endJoystick);
+joystick.addEventListener("pointercancel",endJoystick);
 
 var gameScreen=$("gameScreen");
 gameScreen.addEventListener("pointerdown",function(e){
@@ -632,7 +697,7 @@ gameScreen.addEventListener("pointercancel",function(e){
   if(swipePointerId===e.pointerId)swipePointerId=null;
 });
 document.addEventListener("keydown",function(e){var m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",a:"left",d:"right",w:"up",s:"down"};if(m[e.key]){e.preventDefault();setDir(m[e.key])}});
-resize();makeActors();updateHud();refreshControlSetup();
+resize();makeActors();updateHud();refreshControlSetup();resetStickVisual();
 })();
 </script>
 </body>
