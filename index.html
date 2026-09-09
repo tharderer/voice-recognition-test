@@ -76,6 +76,14 @@ body.playing #gameScreen{display:block}
         <div><strong>Reverse up/down</strong><small>Use this only if forward/back feels backwards</small></div>
         <button id="invertBtn" class="toggle">OFF</button>
       </div>
+      <div class="setting">
+        <div><strong>Adaptive soundtrack</strong><small>Music gets faster and more intense as danger rises</small></div>
+        <button id="musicBtn" class="toggle on">ON</button>
+      </div>
+      <div class="setting">
+        <div><strong>Music volume</strong><small>Retro arcade synth + reactive game cues</small></div>
+        <input id="musicVolume" type="range" min="0" max="100" value="58">
+      </div>
       <div class="sensorCheck" id="setupStatus"><b>Swipe mode ready.</b> Swipe anywhere on the fullscreen game. Your direction stays queued until Pac-Man can turn that way.</div>
     </div>
 
@@ -86,7 +94,7 @@ body.playing #gameScreen{display:block}
 
 <section id="gameScreen">
   <div id="hud">
-    <div id="ref">ROMANS 3:23 KJV <span style="font-size:9px;color:#6fffa0">v6 SWIPE</span></div>
+    <div id="ref">ROMANS 3:23 KJV <span style="font-size:9px;color:#6fffa0">v7 ADAPTIVE MUSIC</span></div>
     <div id="verseProgress"></div>
     <div id="miniStats"><span>♥ <b id="lives">3</b></span><span>★ <b id="score">0</b></span><span>⚡ <b id="power">0/4</b></span><button id="exitBtn">✕</button></div>
   </div>
@@ -125,6 +133,189 @@ var player,ghosts,targets=[],index=0,score=0,lives=3,streak=0,power=0,powerUntil
 var controlMode="swipe",invertY=false,tiltEnabled=false,steeringArmed=false,needsCalibration=false,source="none";
 var baseX=0,baseY=0,lastX=0,lastY=0,orientationSeen=0,accelSeen=0,genericAccel=null;
 var dpr=1,cw=1,ch=1,tx=1,ty=1,loopStarted=false,swipeStartX=0,swipeStartY=0,swipePointerId=null;
+
+var musicEnabled=true,musicVolume=.58,musicActive=false;
+var audioCtx=null,musicMaster=null,musicFilter=null,musicComp=null,noiseBuffer=null;
+var musicTimer=null,nextMusicTime=0,musicStep=0;
+
+
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function noteFreq(midi){return 440*Math.pow(2,(midi-69)/12)}
+
+function initAudio(){
+  if(audioCtx)return;
+  var AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC)return;
+  audioCtx=new AC();
+
+  musicMaster=audioCtx.createGain();
+  musicFilter=audioCtx.createBiquadFilter();
+  musicComp=audioCtx.createDynamicsCompressor();
+
+  musicFilter.type="lowpass";
+  musicFilter.frequency.value=1800;
+  musicFilter.Q.value=.7;
+  musicComp.threshold.value=-18;
+  musicComp.knee.value=14;
+  musicComp.ratio.value=4;
+  musicComp.attack.value=.01;
+  musicComp.release.value=.22;
+  musicMaster.gain.value=0;
+
+  musicFilter.connect(musicComp);
+  musicComp.connect(musicMaster);
+  musicMaster.connect(audioCtx.destination);
+
+  var len=Math.floor(audioCtx.sampleRate*.18);
+  noiseBuffer=audioCtx.createBuffer(1,len,audioCtx.sampleRate);
+  var d=noiseBuffer.getChannelData(0);
+  for(var i=0;i<len;i++)d[i]=Math.random()*2-1;
+
+  musicTimer=setInterval(scheduleMusic,25);
+}
+
+function gameIntensity(){
+  if(!player||!ghosts||!ghosts.length)return .15;
+  var progress=clamp(index/Math.max(1,keys.length-1),0,1);
+  var nearest=99;
+  for(var i=0;i<ghosts.length;i++)nearest=Math.min(nearest,dist(player,ghosts[i]));
+  var danger=clamp((8-nearest)/7,0,1);
+  var streakHeat=clamp(streak/5,0,1);
+  var lowLife=clamp((3-lives)/2,0,1);
+  var wrongHeat=performance.now()<wrongUntil?1:0;
+  var powered=performance.now()<powerUntil?1:0;
+  return clamp(.10+progress*.25+danger*.42+streakHeat*.08+lowLife*.08+wrongHeat*.12+powered*.13,0,1);
+}
+
+function tone(freq,time,dur,type,vol,detune,dest){
+  if(!audioCtx||!musicMaster)return;
+  var o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type=type||"square";
+  o.frequency.setValueAtTime(freq,time);
+  if(detune)o.detune.setValueAtTime(detune,time);
+  g.gain.setValueAtTime(.0001,time);
+  g.gain.exponentialRampToValueAtTime(Math.max(.0002,vol),time+.008);
+  g.gain.exponentialRampToValueAtTime(.0001,time+dur);
+  o.connect(g);g.connect(dest||musicFilter);
+  o.start(time);o.stop(time+dur+.03);
+}
+
+function kick(time,vol){
+  if(!audioCtx)return;
+  var o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type="sine";
+  o.frequency.setValueAtTime(120,time);
+  o.frequency.exponentialRampToValueAtTime(42,time+.12);
+  g.gain.setValueAtTime(vol,time);
+  g.gain.exponentialRampToValueAtTime(.0001,time+.16);
+  o.connect(g);g.connect(musicFilter);o.start(time);o.stop(time+.18);
+}
+
+function noiseHit(time,dur,vol,highpass){
+  if(!audioCtx||!noiseBuffer)return;
+  var src=audioCtx.createBufferSource(),f=audioCtx.createBiquadFilter(),g=audioCtx.createGain();
+  src.buffer=noiseBuffer;f.type="highpass";f.frequency.value=highpass||3500;
+  g.gain.setValueAtTime(vol,time);g.gain.exponentialRampToValueAtTime(.0001,time+dur);
+  src.connect(f);f.connect(g);g.connect(musicFilter);src.start(time);src.stop(time+dur+.01);
+}
+
+function scheduleStep(time,step,intensity){
+  var powered=performance.now()<powerUntil;
+  var root=powered?55:48; // G3 power mode / C3 normal
+  var normalPattern=[0,3,7,10,7,3,12,10, 0,3,7,12,10,7,3,-2];
+  var powerPattern=[0,4,7,12,7,4,14,12, 0,7,12,16,14,12,7,4];
+  var pat=powered?powerPattern:normalPattern;
+  var note=root+pat[step%pat.length];
+
+  // Bass foundation.
+  if(step%4===0){
+    var bassRoot=root-12+(step%16>=8?7:0);
+    tone(noteFreq(bassRoot),time,.16,"square",.045+.025*intensity,0);
+  }
+
+  // Main neon arpeggio. It becomes more frequent with intensity.
+  if(intensity>.12 && (intensity>.55 || step%2===0)){
+    tone(noteFreq(note),time,.10+(1-intensity)*.035,"square",.018+.020*intensity,0);
+  }
+
+  // A detuned upper sparkle joins in during danger.
+  if(intensity>.62 && step%2===1){
+    tone(noteFreq(note+12),time,.065,"triangle",.010+.010*intensity,7);
+  }
+
+  // Drums phase in with danger.
+  if(intensity>.20 && step%4===0)kick(time,.07+.055*intensity);
+  if(intensity>.34 && step%8===4)noiseHit(time,.10,.026+.025*intensity,1500);
+  if(intensity>.52 && step%2===0)noiseHit(time,.035,.010+.012*intensity,5200);
+  if(intensity>.80 && step%2===1)noiseHit(time,.022,.009,6500);
+
+  // Small syncopated pulse at maximum chase intensity.
+  if(intensity>.83 && (step%4===1||step%4===3)){
+    tone(noteFreq(root+19),time,.04,"square",.009,0);
+  }
+}
+
+function scheduleMusic(){
+  if(!audioCtx)return;
+  if(!musicActive||!musicEnabled){
+    nextMusicTime=audioCtx.currentTime+.06;
+    return;
+  }
+  var horizon=audioCtx.currentTime+.14;
+  if(!nextMusicTime||nextMusicTime<audioCtx.currentTime-.2)nextMusicTime=audioCtx.currentTime+.03;
+
+  while(nextMusicTime<horizon){
+    var intensity=gameIntensity();
+    var bpm=108+intensity*70;
+    var stepDur=(60/bpm)/4; // 16th-note clock
+
+    musicFilter.frequency.setTargetAtTime(1250+intensity*5200,audioCtx.currentTime,.08);
+    scheduleStep(nextMusicTime,musicStep,intensity);
+    nextMusicTime+=stepDur;
+    musicStep=(musicStep+1)%16;
+  }
+}
+
+function startMusic(){
+  if(!musicEnabled)return;
+  initAudio();
+  if(!audioCtx)return;
+  if(audioCtx.state==="suspended")audioCtx.resume();
+  musicActive=true;
+  musicStep=0;
+  nextMusicTime=audioCtx.currentTime+.035;
+  musicMaster.gain.cancelScheduledValues(audioCtx.currentTime);
+  musicMaster.gain.setTargetAtTime(musicVolume*.38,audioCtx.currentTime,.08);
+}
+
+function stopMusic(){
+  musicActive=false;
+  if(audioCtx&&musicMaster){
+    musicMaster.gain.cancelScheduledValues(audioCtx.currentTime);
+    musicMaster.gain.setTargetAtTime(.0001,audioCtx.currentTime,.05);
+  }
+}
+
+function sfx(kind){
+  if(!audioCtx||!musicEnabled)return;
+  var t=audioCtx.currentTime+.01;
+  if(kind==="correct"){
+    tone(noteFreq(76),t,.08,"triangle",.055,0,musicMaster);
+    tone(noteFreq(79),t+.055,.10,"triangle",.045,0,musicMaster);
+  }else if(kind==="wrong"){
+    tone(noteFreq(39),t,.18,"sawtooth",.055,0,musicMaster);
+    tone(noteFreq(36),t+.07,.16,"sawtooth",.04,0,musicMaster);
+  }else if(kind==="power"){
+    [67,72,76,79].forEach(function(n,i){tone(noteFreq(n),t+i*.055,.15,"square",.045,0,musicMaster)});
+  }else if(kind==="ghost"){
+    tone(noteFreq(32),t,.23,"sawtooth",.07,0,musicMaster);
+    noiseHit(t,.13,.04,900);
+  }else if(kind==="eatghost"){
+    [72,79,84].forEach(function(n,i){tone(noteFreq(n),t+i*.045,.10,"square",.04,0,musicMaster)});
+  }else if(kind==="complete"){
+    [60,64,67,72,76,79,84].forEach(function(n,i){tone(noteFreq(n),t+i*.07,.22,"triangle",.05,0,musicMaster)});
+  }
+}
 
 function resize(){
   dpr=Math.min(2,window.devicePixelRatio||1);
@@ -204,18 +395,18 @@ function flash(text,bad){
 }
 function collect(t,now){
   if(t.word===keys[index]){
-    score+=100+streak*10;streak++;index++;power++;flash("✓ "+t.word.toUpperCase(),false);
-    if(power>=4){power=0;powerUntil=now+6500;score+=250;flash("VERSE POWER!",false)}
-    if(index>=keys.length){score+=1000;running=false;flash("VERSE COMPLETE!",false)}
+    score+=100+streak*10;streak++;index++;power++;flash("✓ "+t.word.toUpperCase(),false);sfx("correct");
+    if(power>=4){power=0;powerUntil=now+6500;score+=250;flash("VERSE POWER!",false);sfx("power")}
+    if(index>=keys.length){score+=1000;running=false;flash("VERSE COMPLETE!",false);sfx("complete")}
     else spawnTargets();
   }else{
-    streak=0;score=Math.max(0,score-50);wrongUntil=now+3000;flash("WRONG WORD",true);
+    streak=0;score=Math.max(0,score-50);wrongUntil=now+3000;flash("WRONG WORD",true);sfx("wrong");
   }
   updateHud();
 }
 function hitGhost(g,now){
-  if(now<powerUntil){score+=500;g.c=g.home.c;g.r=g.home.r;g.lastCenter="";flash("GHOST CHOMP +500",false);updateHud();return}
-  lives--;streak=0;flash("GHOST GOT YOU",true);updateHud();
+  if(now<powerUntil){score+=500;g.c=g.home.c;g.r=g.home.r;g.lastCenter="";flash("GHOST CHOMP +500",false);sfx("eatghost");updateHud();return}
+  lives--;streak=0;flash("GHOST GOT YOU",true);sfx("ghost");updateHud();
   if(lives<=0){running=false;setTimeout(resetGame,1000)}else{makeActors();spawnTargets()}
 }
 function stepPlayer(dt){
@@ -356,6 +547,7 @@ async function enterFullscreenLandscape(){
   try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock("landscape")}catch(e){}
 }
 async function startGame(){
+  if(musicEnabled)startMusic();
   $("setupStatus").innerHTML="<b>Starting…</b> Opening fullscreen landscape game.";
   try{
     if(controlMode==="tilt"){
@@ -382,7 +574,7 @@ async function startGame(){
   }
 }
 function exitGame(){
-  running=false;steeringArmed=false;document.body.classList.remove("playing");
+  running=false;steeringArmed=false;stopMusic();document.body.classList.remove("playing");
   try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(e){}
   try{if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen()}catch(e){}
 }
@@ -400,6 +592,18 @@ function refreshControlSetup(){
 }
 $("swipeModeBtn").addEventListener("click",function(){controlMode="swipe";refreshControlSetup()});
 $("tiltModeBtn").addEventListener("click",function(){controlMode="tilt";refreshControlSetup()});
+$("musicBtn").addEventListener("click",function(){
+  musicEnabled=!musicEnabled;
+  this.textContent=musicEnabled?"ON":"OFF";
+  this.classList.toggle("on",musicEnabled);
+  if(!musicEnabled)stopMusic();
+});
+$("musicVolume").addEventListener("input",function(){
+  musicVolume=Number(this.value)/100;
+  if(audioCtx&&musicMaster&&musicActive){
+    musicMaster.gain.setTargetAtTime(musicVolume*.38,audioCtx.currentTime,.04);
+  }
+});
 $("invertBtn").addEventListener("click",function(){invertY=!invertY;this.textContent=invertY?"ON":"OFF";this.classList.toggle("on",invertY)});
 $("startGame").addEventListener("click",startGame);
 $("exitBtn").addEventListener("click",exitGame);
