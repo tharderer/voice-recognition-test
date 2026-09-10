@@ -11,7 +11,7 @@ const endText=document.getElementById('endText');
 const TILE=64,COLS=15,ROWS=10,ATLAS_SCALE=640/1254;
 const atlas=new Image();
 const atlasParts=window.ABRAM_ATLAS_PARTS||[];
-atlas.src='data:image/webp;base64,'+atlasParts.join('');
+atlas.src='data:image/avif;base64,'+atlasParts.join('');
 
 const SPRITES={
   abramFront:[5,5,165,230],abramRight1:[170,5,160,235],abramRight2:[320,5,150,235],abramRight3:[460,5,155,235],abramRight4:[605,5,145,235],abramBack:[895,5,170,240],
