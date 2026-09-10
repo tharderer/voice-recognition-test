@@ -5,16 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
   <meta name="theme-color" content="#090d1a">
   <title>Verse Chomper Royale</title>
-  <link rel="stylesheet" href="royale.css?v=4">
-  <link rel="stylesheet" href="lobby-discovery.css?v=4">
-  <link rel="stylesheet" href="royale-motion-fix.css?v=4">
+  <link rel="stylesheet" href="royale.css?v=5">
+  <link rel="stylesheet" href="lobby-discovery.css?v=5">
+  <link rel="stylesheet" href="royale-motion-fix.css?v=5">
+  <link rel="stylesheet" href="royale-endless.css?v=5">
 </head>
 <body>
   <main id="app">
     <section id="homeScreen" class="screen active">
       <div class="hero-mark" aria-hidden="true">◉</div>
       <h1>VERSE CHOMPER<br><span>ROYALE</span></h1>
-      <p class="tagline">Race through the maze. Chomp the KJV verse in order. Power up and send trouble to your rivals.</p>
+      <p class="tagline">Same endless Verse Chomp mechanics — now racing live against 2–4 players.</p>
       <label class="field-label" for="playerName">PLAYER NAME</label>
       <input id="playerName" class="big-input" maxlength="16" autocomplete="nickname" placeholder="Your name">
       <div class="home-actions">
@@ -43,7 +44,7 @@
         <p class="hint">2–4 players. You can start as soon as one other player joins.</p>
       </div>
       <div id="guestWaiting" class="lobby-card hidden waiting-card"><div class="pulse-dot"></div><p>Waiting for the host to start…</p></div>
-      <div class="rules-card"><h3>HOW TO WIN</h3><p>Chomp the verse words <strong>in order</strong>. Wrong words slow you down. Big power pellets launch an attack at a rival. First player to finish the verse wins.</p></div>
+      <div class="rules-card"><h3>HOW TO WIN</h3><p>Race upward through the <strong>endless maze</strong>. Chomp the KJV verse in order while ghosts and the rising glitch chase you. Every four correct words powers you up and launches trouble at a rival. First player to finish the verse wins.</p></div>
       <p id="lobbyStatus" class="status-text" aria-live="polite"></p>
     </section>
 
@@ -52,7 +53,7 @@
       <div id="opponentsBar" class="opponents-bar"></div>
       <div id="verseStrip" class="verse-strip" aria-live="polite"></div>
       <div class="canvas-wrap">
-        <canvas id="gameCanvas" width="380" height="460" aria-label="Verse Chomper maze"></canvas>
+        <canvas id="gameCanvas" width="380" height="460" aria-label="Verse Chomper endless maze"></canvas>
         <div id="countdown" class="countdown hidden"></div>
         <div id="effectBanner" class="effect-banner hidden"></div>
       </div>
@@ -78,13 +79,14 @@
   </main>
 
   <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
-  <script src="royale-1.js?v=4"></script>
-  <script src="royale-2.js?v=4"></script>
-  <script src="royale-3.js?v=4"></script>
-  <script src="royale-4.js?v=4"></script>
-  <script src="royale-5.js?v=4"></script>
-  <script src="lobby-discovery.js?v=4"></script>
-  <script src="lobby-discovery-fix.js?v=4"></script>
-  <script src="royale-motion-fix.js?v=4"></script>
+  <script src="royale-1.js?v=5"></script>
+  <script src="royale-2.js?v=5"></script>
+  <script src="royale-3.js?v=5"></script>
+  <script src="royale-4.js?v=5"></script>
+  <script src="royale-5.js?v=5"></script>
+  <script src="lobby-discovery.js?v=5"></script>
+  <script src="lobby-discovery-fix.js?v=5"></script>
+  <script src="royale-motion-fix.js?v=5"></script>
+  <script src="royale-endless.js?v=5"></script>
 </body>
 </html>
