@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
   <meta name="theme-color" content="#090d1a">
   <title>Verse Chomper Royale</title>
-  <link rel="stylesheet" href="royale.css?v=6">
-  <link rel="stylesheet" href="lobby-discovery.css?v=6">
-  <link rel="stylesheet" href="royale-motion-fix.css?v=6">
-  <link rel="stylesheet" href="royale-endless.css?v=6">
-  <link rel="stylesheet" href="royale-presentation-fix.css?v=6">
+  <link rel="stylesheet" href="royale.css?v=7">
+  <link rel="stylesheet" href="lobby-discovery.css?v=7">
+  <link rel="stylesheet" href="royale-motion-fix.css?v=7">
+  <link rel="stylesheet" href="royale-endless.css?v=7">
+  <link rel="stylesheet" href="royale-presentation-fix.css?v=7">
+  <link rel="stylesheet" href="royale-clarity-fix.css?v=7">
 </head>
 <body>
   <main id="app">
@@ -45,12 +46,12 @@
         <p class="hint">2–4 players. You can start as soon as one other player joins.</p>
       </div>
       <div id="guestWaiting" class="lobby-card hidden waiting-card"><div class="pulse-dot"></div><p>Waiting for the host to start…</p></div>
-      <div class="rules-card"><h3>HOW TO WIN</h3><p>Race upward through the <strong>endless maze</strong>. Chomp the KJV verse in order while ghosts and the rising glitch chase you. Every four correct words powers you up and launches trouble at a rival. First player to finish the verse wins.</p></div>
+      <div class="rules-card"><h3>HOW 2–4 PLAYER WORKS</h3><p>Every player runs on their own copy of the same endless-maze challenge. You race to finish the same KJV verse first. Rival bars show everyone else's verse progress. Every four correct words gives Verse Power and sends an attack to a rival.</p></div>
       <p id="lobbyStatus" class="status-text" aria-live="polite"></p>
     </section>
 
     <section id="gameScreen" class="screen game-screen">
-      <header class="game-header"><div><div id="gameReference" class="reference">Romans 3:23 KJV</div><div id="nextWordText" class="next-word">NEXT: FOR</div></div><div id="lives" class="lives" aria-label="Lives">● ● ●</div></header>
+      <header class="game-header"><div><div id="gameReference" class="reference">Romans 3:23 KJV</div><div id="nextWordText" class="next-word">WORD 1 OF 12 • NEXT: FOR</div></div><div id="lives" class="lives" aria-label="Lives">● ● ●</div></header>
       <div id="opponentsBar" class="opponents-bar"></div>
       <div id="verseStrip" class="verse-strip" aria-live="polite"></div>
       <div class="canvas-wrap">
@@ -70,25 +71,27 @@
     </section>
 
     <section id="resultScreen" class="screen">
+      <button id="resultBackBtn" class="result-back-fixed">‹ BACK TO MENU</button>
       <div id="resultMedal" class="result-medal">★</div>
       <h2 id="resultTitle">YOU WIN!</h2>
       <p id="resultSubtitle" class="result-subtitle"></p>
       <div id="finalStandings" class="final-standings"></div>
       <button id="playAgainBtn" class="primary-btn">PLAY AGAIN</button>
-      <button class="ghost-btn" data-back-home>HOME</button>
+      <button class="ghost-btn" data-back-home>BACK TO BATTLE ROYALE MENU</button>
     </section>
   </main>
 
   <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
-  <script src="royale-1.js?v=6"></script>
-  <script src="royale-2.js?v=6"></script>
-  <script src="royale-3.js?v=6"></script>
-  <script src="royale-4.js?v=6"></script>
-  <script src="royale-5.js?v=6"></script>
-  <script src="lobby-discovery.js?v=6"></script>
-  <script src="lobby-discovery-fix.js?v=6"></script>
-  <script src="royale-motion-fix.js?v=6"></script>
-  <script src="royale-endless.js?v=6"></script>
-  <script src="royale-presentation-fix.js?v=6"></script>
+  <script src="royale-1.js?v=7"></script>
+  <script src="royale-2.js?v=7"></script>
+  <script src="royale-3.js?v=7"></script>
+  <script src="royale-4.js?v=7"></script>
+  <script src="royale-5.js?v=7"></script>
+  <script src="lobby-discovery.js?v=7"></script>
+  <script src="lobby-discovery-fix.js?v=7"></script>
+  <script src="royale-motion-fix.js?v=7"></script>
+  <script src="royale-endless.js?v=7"></script>
+  <script src="royale-presentation-fix.js?v=7"></script>
+  <script src="royale-clarity-fix.js?v=7"></script>
 </body>
 </html>
