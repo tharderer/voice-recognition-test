@@ -13,10 +13,8 @@
       <div class="hero-mark" aria-hidden="true">◉</div>
       <h1>VERSE CHOMPER<br><span>ROYALE</span></h1>
       <p class="tagline">Race through the maze. Chomp the KJV verse in order. Power up and send trouble to your rivals.</p>
-
       <label class="field-label" for="playerName">PLAYER NAME</label>
       <input id="playerName" class="big-input" maxlength="16" autocomplete="nickname" placeholder="Your name">
-
       <div class="home-actions">
         <button id="createBtn" class="primary-btn">CREATE MATCH</button>
         <div class="join-row">
@@ -31,58 +29,31 @@
     <section id="lobbyScreen" class="screen">
       <div class="topbar">
         <button class="back-btn" data-back-home aria-label="Back">‹</button>
-        <div>
-          <div class="mini-label">MATCH CODE</div>
-          <div id="lobbyCode" class="room-code">-----</div>
-        </div>
+        <div><div class="mini-label">MATCH CODE</div><div id="lobbyCode" class="room-code">-----</div></div>
         <div id="connectionBadge" class="connection-badge">LIVE</div>
       </div>
-
       <button id="shareBtn" class="share-btn">SHARE JOIN LINK</button>
-
-      <div class="lobby-card">
-        <h2>PLAYERS</h2>
-        <div id="playerList" class="player-list"></div>
-      </div>
-
+      <div class="lobby-card"><h2>PLAYERS</h2><div id="playerList" class="player-list"></div></div>
       <div id="hostControls" class="lobby-card hidden">
         <label class="field-label" for="verseSelect">KJV VERSE</label>
         <select id="verseSelect" class="verse-select"></select>
         <button id="startBtn" class="primary-btn">START BATTLE</button>
         <p class="hint">2–4 players. You can start as soon as one other player joins.</p>
       </div>
-
-      <div id="guestWaiting" class="lobby-card hidden waiting-card">
-        <div class="pulse-dot"></div>
-        <p>Waiting for the host to start…</p>
-      </div>
-
-      <div class="rules-card">
-        <h3>HOW TO WIN</h3>
-        <p>Chomp the verse words <strong>in order</strong>. Wrong words slow you down. Big power pellets launch an attack at a rival. First player to finish the verse wins.</p>
-      </div>
+      <div id="guestWaiting" class="lobby-card hidden waiting-card"><div class="pulse-dot"></div><p>Waiting for the host to start…</p></div>
+      <div class="rules-card"><h3>HOW TO WIN</h3><p>Chomp the verse words <strong>in order</strong>. Wrong words slow you down. Big power pellets launch an attack at a rival. First player to finish the verse wins.</p></div>
       <p id="lobbyStatus" class="status-text" aria-live="polite"></p>
     </section>
 
     <section id="gameScreen" class="screen game-screen">
-      <header class="game-header">
-        <div>
-          <div id="gameReference" class="reference">Romans 3:23 KJV</div>
-          <div id="nextWordText" class="next-word">NEXT: FOR</div>
-        </div>
-        <div id="lives" class="lives" aria-label="Lives">● ● ●</div>
-      </header>
-
+      <header class="game-header"><div><div id="gameReference" class="reference">Romans 3:23 KJV</div><div id="nextWordText" class="next-word">NEXT: FOR</div></div><div id="lives" class="lives" aria-label="Lives">● ● ●</div></header>
       <div id="opponentsBar" class="opponents-bar"></div>
-
       <div id="verseStrip" class="verse-strip" aria-live="polite"></div>
-
       <div class="canvas-wrap">
         <canvas id="gameCanvas" width="380" height="460" aria-label="Verse Chomper maze"></canvas>
         <div id="countdown" class="countdown hidden"></div>
         <div id="effectBanner" class="effect-banner hidden"></div>
       </div>
-
       <div class="controls-row">
         <div class="dpad" aria-label="Touch controls">
           <button class="dir-btn up" data-dir="up" aria-label="Up">▲</button>
@@ -105,6 +76,10 @@
   </main>
 
   <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
-  <script type="module" src="royale.js?v=1"></script>
+  <script src="royale-1.js?v=1"></script>
+  <script src="royale-2.js?v=1"></script>
+  <script src="royale-3.js?v=1"></script>
+  <script src="royale-4.js?v=1"></script>
+  <script src="royale-5.js?v=1"></script>
 </body>
 </html>
