@@ -1,10 +1,13 @@
 /* Clarity pass: full verse, obvious progress, and landscape-safe result navigation. */
 .result-back-fixed{position:absolute;z-index:50;left:12px;top:12px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#fff;border-radius:12px;min-height:42px;padding:0 13px;font-weight:950}
+#resultActionDock{display:none;position:fixed;z-index:99999;left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));gap:10px;padding:8px;background:rgba(3,7,18,.96);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.55);pointer-events:auto}
+#resultActionDock.show{display:grid;grid-template-columns:1fr 1fr}
+#resultActionDock button{min-height:48px;border:0;border-radius:11px;font:950 14px system-ui;letter-spacing:.3px;cursor:pointer;touch-action:manipulation;pointer-events:auto}
+#dockPlayAgain{background:#ffd84f;color:#171300}
+#dockBackMenu{background:#48e8ff;color:#031318}
 @media (orientation:landscape){
-  /* Only gameplay should behave like a fixed arcade viewport. Menus/results must remain usable in landscape. */
   html,body{overflow:auto!important;height:auto!important;min-height:100%!important}
   #app{position:relative!important;inset:auto!important;width:100%!important;max-width:760px!important;height:auto!important;min-height:100dvh!important;margin:0 auto!important;padding:10px 14px!important;overflow:visible!important}
-
   #gameScreen.active{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;z-index:100}
   .game-header{height:36px!important;min-height:36px!important}
   .game-header .reference{font-size:13px!important}
@@ -15,41 +18,30 @@
   .verse-strip .current-word{color:#ffd84f!important;background:rgba(255,216,79,.14);border-radius:4px;padding:1px 3px;text-decoration:none!important;box-shadow:0 0 0 1px rgba(255,216,79,.32)}
   .canvas-wrap{top:98px!important}
   .opponents-bar{top:101px!important;right:7px!important;width:min(43vw,390px)!important;height:31px!important}
-
-  /* Dedicated landscape result layout: no scrolling required for the main actions. */
-  #resultScreen.active{
-    position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:0!important;
-    display:grid!important;grid-template-columns:minmax(170px,34%) minmax(280px,1fr)!important;
-    grid-template-rows:auto auto 1fr auto auto!important;column-gap:16px!important;row-gap:7px!important;
-    align-items:center!important;justify-content:stretch!important;align-content:stretch!important;
-    overflow:hidden!important;padding:8px 12px 10px!important;
-    background:radial-gradient(circle at 25% 15%,#17264a 0,#090d1a 58%)!important;z-index:200
-  }
+  #resultScreen.active{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:0!important;display:grid!important;grid-template-columns:minmax(170px,34%) minmax(280px,1fr)!important;grid-template-rows:auto auto 1fr auto auto!important;column-gap:16px!important;row-gap:7px!important;align-items:center!important;justify-content:stretch!important;align-content:stretch!important;overflow:hidden!important;padding:8px 12px 78px!important;background:radial-gradient(circle at 25% 15%,#17264a 0,#090d1a 58%)!important;z-index:200}
   #resultScreen .result-back-fixed{left:8px!important;top:8px!important;min-height:34px!important;padding:0 10px!important;border-radius:9px!important;font-size:11px!important}
   #resultScreen .result-medal{grid-column:1!important;grid-row:1!important;width:62px!important;height:62px!important;font-size:34px!important;margin:34px auto 0!important;align-self:end!important}
   #resultTitle{grid-column:1!important;grid-row:2!important;font-size:27px!important;line-height:1!important;margin:0!important;text-align:center!important}
   #resultScreen .result-subtitle{grid-column:1!important;grid-row:3!important;align-self:start!important;margin:0!important;padding:2px 8px!important;font-size:11px!important;line-height:1.25!important;text-align:center!important;color:#aeb9d3!important}
-  #resultScreen .final-standings{grid-column:2!important;grid-row:1 / 6!important;align-self:stretch!important;min-height:0!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;margin:0!important;padding:4px 2px!important;gap:6px!important}
+  #resultScreen .final-standings{grid-column:2!important;grid-row:1 / 6!important;align-self:stretch!important;min-height:0!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;margin:0!important;padding:4px 2px 58px!important;gap:6px!important}
   #resultScreen .standing-row{min-height:0!important;padding:7px 9px!important;border-radius:9px!important}
   #resultScreen .standing-place{font-size:12px!important}
   #resultScreen .standing-name{font-size:12px!important}
   #resultScreen .standing-progress{font-size:10px!important}
-  #resultScreen #playAgainBtn{grid-column:1!important;grid-row:4!important;width:100%!important;min-height:42px!important;height:42px!important;margin:0!important;display:block!important}
-  #resultScreen > .ghost-btn{grid-column:1!important;grid-row:5!important;width:100%!important;min-height:40px!important;height:40px!important;margin:0!important;display:block!important;font-size:11px!important}
-
-  /* Lobby and home remain scrollable/usable if the phone stays sideways. */
+  #resultScreen #playAgainBtn,#resultScreen > .ghost-btn{display:none!important}
   #homeScreen.active,#lobbyScreen.active{min-height:calc(100dvh - 20px)!important;height:auto!important;overflow:visible!important}
+  #resultActionDock.show{display:grid!important;grid-template-columns:1fr 1fr!important}
 }
 @media (orientation:landscape) and (max-height:420px){
   .verse-strip{height:54px!important;min-height:54px!important;max-height:54px!important;font-size:10px!important;line-height:14px!important}
   .canvas-wrap{top:90px!important}
   .opponents-bar{top:93px!important}
-  #resultScreen.active{grid-template-columns:minmax(155px,32%) minmax(250px,1fr)!important;column-gap:10px!important;row-gap:4px!important;padding:6px 9px 7px!important}
+  #resultScreen.active{grid-template-columns:minmax(155px,32%) minmax(250px,1fr)!important;column-gap:10px!important;row-gap:4px!important;padding:6px 9px 70px!important}
   #resultScreen .result-back-fixed{top:6px!important;left:6px!important;min-height:30px!important;font-size:10px!important}
   #resultScreen .result-medal{width:50px!important;height:50px!important;font-size:28px!important;margin-top:28px!important}
   #resultTitle{font-size:23px!important}
   #resultScreen .result-subtitle{font-size:10px!important;padding:0 4px!important}
-  #resultScreen #playAgainBtn{height:36px!important;min-height:36px!important;font-size:11px!important}
-  #resultScreen > .ghost-btn{height:34px!important;min-height:34px!important;font-size:10px!important}
   #resultScreen .standing-row{padding:5px 7px!important}
+  #resultActionDock{bottom:max(6px,env(safe-area-inset-bottom));left:max(6px,env(safe-area-inset-left));right:max(6px,env(safe-area-inset-right));padding:5px;gap:6px;border-radius:10px}
+  #resultActionDock button{min-height:42px;font-size:12px;border-radius:8px}
 }
