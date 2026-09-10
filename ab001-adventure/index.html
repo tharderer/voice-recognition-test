@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#17120d" />
+  <title>AB001 — Leave Haran</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="gameShell" aria-label="AB001 Abraham adventure game">
+    <canvas id="game" aria-label="Top-down adventure world"></canvas>
+
+    <section id="hud" aria-live="polite">
+      <div class="missionCard">
+        <img id="questIcon" data-atlas="ui_sarai.png" alt="Current mission" />
+        <div class="missionText">
+          <div class="eyebrow">AB001 · GENESIS 12:1–5 · KJV</div>
+          <div id="objective">Find Sarai in Haran</div>
+          <div id="progressText">Caravan preparation: 0%</div>
+        </div>
+      </div>
+      <button id="menuButton" class="roundButton" type="button" aria-label="Pause or restart">
+        <img data-atlas="ui_gear.png" alt="" />
+      </button>
+    </section>
+
+    <div id="toast" role="status" aria-live="assertive"></div>
+
+    <section id="controls" aria-label="Game controls">
+      <div class="dpad" aria-label="Movement pad">
+        <button type="button" class="dir up" data-dir="up" aria-label="Move up">▲</button>
+        <button type="button" class="dir left" data-dir="left" aria-label="Move left">◀</button>
+        <button type="button" class="dir right" data-dir="right" aria-label="Move right">▶</button>
+        <button type="button" class="dir down" data-dir="down" aria-label="Move down">▼</button>
+      </div>
+      <button id="interactButton" type="button" aria-label="Interact">
+        <img data-atlas="ui_exclaim.png" alt="" />
+        <span>INTERACT</span>
+      </button>
+    </section>
+
+    <section id="intro" class="overlay visible" aria-modal="true" role="dialog">
+      <div class="overlayCard heroIntro">
+        <img class="introBadge" data-atlas="ui_leave.png" alt="Abram leaving the city" />
+        <div class="eyebrow">HERO CARD #1 · AB001</div>
+        <h1>LEAVE HARAN</h1>
+        <p>Explore Haran as Abram. Find Sarai and Lot, gather the household, collect the possessions, round up the animals, assemble the caravan, and lead everyone toward Canaan.</p>
+        <div class="miniRules"><span>Move: D-pad / WASD</span><span>Action: INTERACT / Space</span></div>
+        <button id="startButton" class="primaryButton" type="button">BEGIN MISSION</button>
+      </div>
+    </section>
+
+    <section id="pause" class="overlay" aria-modal="true" role="dialog">
+      <div class="overlayCard compact">
+        <img class="smallBadge" data-atlas="ui_map.png" alt="Journey map" />
+        <h2>MISSION PAUSED</h2>
+        <button id="resumeButton" class="primaryButton" type="button">RESUME</button>
+        <button id="restartButton" class="secondaryButton" type="button">RESTART AB001</button>
+      </div>
+    </section>
+
+    <section id="complete" class="overlay" aria-modal="true" role="dialog">
+      <div class="overlayCard completeCard">
+        <img class="introBadge" data-atlas="ui_canaan.png" alt="Canaan landscape" />
+        <div class="eyebrow">HERO CARD #1</div>
+        <h1>MISSION COMPLETE</h1>
+        <p>You gathered Abram's household and possessions, left Haran, kept the caravan together, and reached Canaan.</p>
+        <div class="earned">AB001 EARNED</div>
+        <button id="playAgainButton" class="primaryButton" type="button">PLAY AGAIN</button>
+      </div>
+    </section>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
