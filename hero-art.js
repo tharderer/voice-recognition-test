@@ -28,7 +28,7 @@
     window.ABRAM_ATLAS_PARTS = window.ABRAM_ATLAS_PARTS || [];
     if (part > 13) { startAtlas(); return; }
     const tag = document.createElement("script");
-    tag.src = `royale/abram-avif-part${String(part).padStart(2,"0")}.js?v=1`;
+    tag.src = `ab001-art/abram-avif-part${String(part).padStart(2,"0")}.js?v=1`;
     tag.onload = () => loadAtlasPartsSequentially(part + 1);
     tag.onerror = () => console.error("Could not load AB001 art atlas part", part);
     document.head.appendChild(tag);
@@ -120,7 +120,7 @@
     if(mode!=="hero"||!atlasReady)return original.drawPlayer(now);
     const x=(player.c+.5)*tile,y=(player.r-cameraTop+.5)*tile,blink=(now<invulnUntil&&Math.floor(now/90)%2)?.35:1;let sp="abramFront",flip=false;
     if(player.dir.y<0)sp="abramBack";else if(player.dir.y>0)sp="abramFront";else if(player.dir.x!==0){const frames=["abramRight1","abramRight2","abramRight3","abramRight4"];sp=frames[Math.floor(player.mouth)%frames.length];flip=player.dir.x<0}
-    const size=tile*1.58; // roughly twice the old Pac-Man diameter
+    const size=tile*1.58;
     ctx.save();ctx.globalAlpha=blink;ctx.shadowBlur=10*dpr;ctx.shadowColor="rgba(255,218,83,.40)";sprite(sp,x,y,size,size,flip,blink);ctx.restore();
   };
 
