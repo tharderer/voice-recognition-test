@@ -1,0 +1,55 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ink: #fff7e4;
+  --panel: rgba(24, 18, 12, .88);
+  --panel2: rgba(49, 35, 20, .94);
+  --gold: #e9b74a;
+  --gold2: #ffd978;
+  --brown: #5d3b20;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin:0; width:100%; height:100%; overflow:hidden; background:#15100b; }
+body { overscroll-behavior:none; }
+button { font:inherit; }
+#gameShell { position:relative; width:100%; height:100%; overflow:hidden; background:#15100b; touch-action:none; user-select:none; }
+#game { display:block; width:100%; height:100%; background:#c99654; }
+#hud { position:absolute; z-index:12; top:max(8px, env(safe-area-inset-top)); left:max(8px, env(safe-area-inset-left)); right:max(8px, env(safe-area-inset-right)); display:flex; align-items:flex-start; justify-content:space-between; gap:10px; pointer-events:none; }
+.missionCard { pointer-events:none; display:flex; align-items:center; min-width:0; width:min(520px, calc(100% - 58px)); min-height:60px; padding:6px 10px 6px 6px; border:2px solid rgba(246,211,137,.8); border-radius:14px; background:linear-gradient(180deg, rgba(31,22,14,.95), rgba(19,14,10,.91)); box-shadow:0 3px 12px rgba(0,0,0,.35); }
+#questIcon { width:50px; height:50px; object-fit:contain; flex:0 0 auto; }
+.missionText { min-width:0; line-height:1.05; }
+.eyebrow { font-size:10px; letter-spacing:.12em; font-weight:900; color:#e9c983; text-transform:uppercase; }
+#objective { margin-top:3px; font-weight:900; font-size:clamp(14px, 2.5vw, 20px); color:#fff9ec; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#progressText { margin-top:4px; font-size:11px; color:#d9c7a5; }
+.roundButton { pointer-events:auto; width:48px; height:48px; border:0; border-radius:50%; padding:2px; background:transparent; filter:drop-shadow(0 2px 5px rgba(0,0,0,.45)); }
+.roundButton img { width:100%; height:100%; object-fit:contain; }
+#controls { position:absolute; z-index:14; inset:auto max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); display:flex; align-items:flex-end; justify-content:space-between; pointer-events:none; }
+.dpad { position:relative; width:154px; height:154px; pointer-events:auto; }
+.dir { position:absolute; width:54px; height:54px; border:2px solid rgba(255,232,177,.86); border-radius:18px; color:#fff5d7; background:rgba(40,28,17,.78); box-shadow:0 3px 9px rgba(0,0,0,.35); font-size:24px; font-weight:900; touch-action:none; }
+.dir:active, .dir.active { background:rgba(151,101,44,.9); transform:scale(.96); }
+.dir.up { left:50px; top:0; }.dir.down { left:50px; bottom:0; }.dir.left { left:0; top:50px; }.dir.right { right:0; top:50px; }
+#interactButton { pointer-events:auto; width:92px; height:92px; border:0; border-radius:50%; background:rgba(40,28,17,.72); color:white; font-weight:900; font-size:11px; letter-spacing:.06em; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:5px; filter:drop-shadow(0 3px 8px rgba(0,0,0,.4)); touch-action:none; }
+#interactButton img { width:62px; height:62px; object-fit:contain; margin-bottom:-7px; }
+#interactButton:active { transform:scale(.96); }
+#toast { position:absolute; z-index:18; left:50%; top:23%; transform:translate(-50%,-50%) scale(.96); max-width:min(84%, 520px); padding:10px 16px; border-radius:14px; background:rgba(22,15,9,.94); border:2px solid rgba(244,198,101,.8); color:#fff6df; font-size:14px; font-weight:800; text-align:center; opacity:0; transition:opacity .18s ease, transform .18s ease; pointer-events:none; }
+#toast.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+.overlay { position:absolute; z-index:30; inset:0; display:none; place-items:center; padding:16px; background:rgba(9,7,5,.73); overflow:auto; }
+.overlay.visible { display:grid; }
+.overlayCard { width:min(620px, 94vw); max-height:92vh; overflow:auto; padding:18px; border:3px solid #d5a649; border-radius:22px; background:linear-gradient(180deg, rgba(55,39,22,.98), rgba(24,17,11,.99)); color:#fff4dc; text-align:center; box-shadow:0 16px 50px rgba(0,0,0,.5), inset 0 0 0 2px rgba(255,231,174,.12); }
+.overlayCard h1, .overlayCard h2 { margin:3px 0 8px; color:#ffe4a0; line-height:1; }
+.overlayCard h1 { font-size:clamp(30px, 7vw, 52px); }.overlayCard h2 { font-size:28px; }
+.overlayCard p { margin:8px auto 14px; max-width:520px; line-height:1.4; color:#eee0c4; }
+.introBadge { width:min(210px, 40vw); height:150px; object-fit:contain; display:block; margin:0 auto 4px; }
+.smallBadge { width:min(220px, 50vw); max-height:120px; object-fit:contain; }
+.miniRules { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:12px 0; font-size:12px; color:#d7c09d; }
+.miniRules span { padding:5px 8px; border:1px solid rgba(229,192,120,.3); border-radius:999px; }
+.primaryButton, .secondaryButton { min-height:48px; min-width:180px; padding:10px 18px; margin:5px; border-radius:14px; font-weight:1000; letter-spacing:.04em; }
+.primaryButton { border:2px solid #ffe2a0; background:linear-gradient(#d9a13f,#a86a24); color:#1a1007; }.secondaryButton { border:2px solid #8d785b; background:#2f261d; color:#fff4dc; }
+.earned { display:inline-block; margin:3px 0 10px; padding:8px 14px; border-radius:999px; background:#1c5d35; border:2px solid #79d89d; color:#eaffef; font-weight:1000; letter-spacing:.09em; }
+.compact { width:min(400px,92vw); }
+@media (max-width: 620px) and (orientation: portrait) {
+  .missionCard { width:calc(100% - 56px); }.dpad { width:140px; height:140px; }.dir { width:50px; height:50px; }.dir.up,.dir.down { left:45px; }.dir.left,.dir.right { top:45px; } #interactButton { width:82px; height:82px; } #interactButton img { width:56px; height:56px; }
+}
+@media (max-height: 430px) {
+  .missionCard { min-height:52px; }.missionCard #questIcon { width:42px; height:42px; }.eyebrow { font-size:8px; } #objective { font-size:14px; } #progressText { font-size:9px; }.dpad { width:126px; height:126px; }.dir { width:46px; height:46px; border-radius:15px; font-size:20px; }.dir.up,.dir.down { left:40px; }.dir.left,.dir.right { top:40px; } #interactButton { width:76px; height:76px; font-size:9px; } #interactButton img { width:50px; height:50px; }.introBadge { height:95px; }.overlayCard { padding:10px 14px; }.overlayCard p { font-size:12px; margin:5px auto 8px; }.overlayCard h1 { font-size:30px; }.miniRules { margin:5px 0; }.primaryButton,.secondaryButton { min-height:42px; padding:7px 13px; }
+}
