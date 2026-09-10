@@ -1,4 +1,4 @@
-/* Clarity pass: stable word orbs, full verse progress, and explicit multiplayer rules. */
+/* Clarity pass: stable word orbs, full verse progress, explicit multiplayer rules, and bulletproof result controls. */
 (function(){
 "use strict";
 const STABLE_DECOYS=["some","many","people","always","were","unto","through","great","good","world","every","grace","shall","because","before","heaven","works","their","truth","faith","heart","word","mercy","light","walk","love"];
@@ -37,8 +37,59 @@ const rules=document.querySelector(".rules-card p");
 if(rules)rules.innerHTML='<strong>HOW 2–4 PLAYER WORKS:</strong> Every player runs on their <strong>own copy of the same endless-maze challenge</strong>. You do not share one screen or collide with the other Pac-Men. The rival bars show each player’s verse progress. Chomp your verse words in order; wrong words break your combo. Every 4 correct words gives Verse Power and sends an attack to a rival. First player to finish the whole verse wins.';
 const oldRenderOpponents=renderOpponents;
 renderOpponents=function(){oldRenderOpponents();if(!game)return;const chips=els.opponentsBar.querySelectorAll(".opponent-chip");chips.forEach(chip=>chip.setAttribute("title","Rival verse progress"))};
-function exitGamePresentation(){try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(_){}try{if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen()}catch(_){}}
+
+function exitGamePresentation(){
+  try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()}catch(_){}
+  try{if(document.fullscreenElement&&document.exitFullscreen){const p=document.exitFullscreen();if(p&&p.catch)p.catch(()=>{})}}catch(_){}
+}
+
+function ensureResultDock(){
+  let dock=document.getElementById("resultActionDock");
+  if(dock)return dock;
+  dock=document.createElement("div");
+  dock.id="resultActionDock";
+  dock.innerHTML='<button id="dockPlayAgain" type="button">PLAY AGAIN</button><button id="dockBackMenu" type="button">BACK TO MENU</button>';
+  document.body.appendChild(dock);
+  dock.querySelector("#dockPlayAgain").addEventListener("click",()=>{
+    exitGamePresentation();
+    hideResultDock();
+    if(session.practice){
+      session.players.forEach(p=>{p.progress=0;p.lives=3;p.botSlowUntil=0});
+      session.phase="game";
+      startGame(hashString(`${Date.now()}practice`));
+      scheduleBots();
+    }else{
+      playAgain();
+    }
+  });
+  dock.querySelector("#dockBackMenu").addEventListener("click",()=>{
+    exitGamePresentation();
+    hideResultDock();
+    returnHome();
+  });
+  return dock;
+}
+function showResultDock(){ensureResultDock().classList.add("show")}
+function hideResultDock(){document.getElementById("resultActionDock")?.classList.remove("show")}
+
+const originalFinishMatch=finishMatch;
+finishMatch=function(winnerId,players){
+  originalFinishMatch(winnerId,players);
+  exitGamePresentation();
+  showResultDock();
+  setTimeout(showResultDock,50);
+  setTimeout(showResultDock,300);
+};
+
+const originalShowScreen=showScreen;
+showScreen=function(screen){
+  originalShowScreen(screen);
+  if(screen!==els.result)hideResultDock();
+};
+
 const resultBack=document.getElementById("resultBackBtn");
-if(resultBack)resultBack.addEventListener("click",()=>{exitGamePresentation();returnHome()});
-document.querySelectorAll("#resultScreen [data-back-home]").forEach(btn=>btn.addEventListener("click",exitGamePresentation));
+if(resultBack)resultBack.addEventListener("click",()=>{exitGamePresentation();hideResultDock();returnHome()});
+document.querySelectorAll("#resultScreen [data-back-home]").forEach(btn=>btn.addEventListener("click",()=>{exitGamePresentation();hideResultDock()}));
+window.addEventListener("pageshow",()=>{if(session.phase!=="result")hideResultDock()});
+ensureResultDock();
 })();
