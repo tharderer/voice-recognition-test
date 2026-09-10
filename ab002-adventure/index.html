@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="theme-color" content="#17120d">
+<title>AB002 — Abram Believes the Promise</title>
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<main id="gameShell" aria-label="AB002 Abraham adventure game">
+  <canvas id="game" aria-label="Top-down Shechem adventure"></canvas>
+
+  <section id="hud">
+    <div class="missionCard">
+      <div class="scrollIcon">📜</div>
+      <div class="missionText">
+        <div class="eyebrow">AB002 · CALLED TO CANAAN · GENESIS 12:6–7 KJV</div>
+        <div id="objective">Travel to Shechem</div>
+        <div id="progressText">Mission progress: 0%</div>
+      </div>
+    </div>
+    <div class="topButtons">
+      <div class="zoomBox" aria-label="Zoom controls">
+        <button id="zoomOutButton" type="button" aria-label="Zoom out">−</button>
+        <span id="zoomLevel">100%</span>
+        <button id="zoomInButton" type="button" aria-label="Zoom in">+</button>
+      </div>
+      <button id="menuButton" class="roundButton" type="button" aria-label="Pause">⚙️</button>
+    </div>
+  </section>
+
+  <section id="goalsPanel" aria-label="Mission goals">
+    <div class="goalsTitle">ABRAM BELIEVES THE PROMISE</div>
+    <div id="goal1" class="goal active"><span>○</span> Reach Shechem</div>
+    <div id="goal2" class="goal"><span>○</span> Find the plain of Moreh</div>
+    <div id="goal3" class="goal"><span>○</span> Hear the LORD's promise</div>
+    <div id="goal4" class="goal"><span>○</span> Gather 5 altar stones</div>
+    <div id="goal5" class="goal"><span>○</span> Build the altar</div>
+  </section>
+
+  <div id="stoneCounter" aria-live="polite">🪨 <b id="stones">0</b>/5</div>
+  <div id="toast" role="status" aria-live="assertive"></div>
+
+  <section id="controls" aria-label="Game controls">
+    <div class="dpad">
+      <button type="button" class="dir up" data-dir="up">▲</button>
+      <button type="button" class="dir left" data-dir="left">◀</button>
+      <button type="button" class="dir right" data-dir="right">▶</button>
+      <button type="button" class="dir down" data-dir="down">▼</button>
+    </div>
+    <button id="interactButton" type="button" aria-label="Interact"><span class="bang">!</span><span>INTERACT</span></button>
+  </section>
+
+  <section id="loading" class="overlay visible" role="dialog">
+    <div class="overlayCard compact">
+      <div class="bigIcon">🌳</div>
+      <div class="eyebrow">HERO CARD #2 · AB002</div>
+      <h1>ABRAM BELIEVES THE PROMISE</h1>
+      <p>Genesis 12:6–7</p>
+      <div id="loadText">Loading custom Abraham adventure art…</div>
+    </div>
+  </section>
+
+  <section id="scripture" class="overlay" role="dialog" aria-modal="true">
+    <div class="overlayCard scriptureCard">
+      <div class="eyebrow">GENESIS 12:7 · KJV</div>
+      <h2>THE PROMISE AT SHECHEM</h2>
+      <blockquote>“And the LORD appeared unto Abram, and said, Unto thy seed will I give this land: and there builded he an altar unto the LORD, who appeared unto him.”</blockquote>
+      <p>Abram owns none of the land yet, but he believes the promise. Now gather stones and build the altar.</p>
+      <button id="continueButton" class="primaryButton" type="button">CONTINUE MISSION</button>
+    </div>
+  </section>
+
+  <section id="pause" class="overlay" role="dialog">
+    <div class="overlayCard compact">
+      <div class="bigIcon">🗺️</div><h2>MISSION PAUSED</h2>
+      <button id="resumeButton" class="primaryButton" type="button">RESUME</button>
+      <button id="restartButton" class="secondaryButton" type="button">RESTART AB002</button>
+      <p><a href="../">BACK TO TEST GAMES</a></p>
+    </div>
+  </section>
+
+  <section id="complete" class="overlay" role="dialog">
+    <div class="overlayCard completeCard">
+      <div class="bigIcon">⭐</div>
+      <div class="eyebrow">HERO CARD #2 · AB002</div>
+      <h1>MISSION COMPLETE</h1>
+      <p>Abram reached Shechem, believed God's promise, and built an altar unto the LORD.</p>
+      <div class="earned">AB002 EARNED</div>
+      <button id="playAgainButton" class="primaryButton" type="button">PLAY AGAIN</button>
+      <a class="nextButton" href="../">BACK TO TEST GAMES</a>
+    </div>
+  </section>
+</main>
+<script src="game.js?v=1"></script>
+</body>
+</html>
