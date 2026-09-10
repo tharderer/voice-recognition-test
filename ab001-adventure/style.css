@@ -23,6 +23,11 @@ button { font:inherit; }
 #progressText { margin-top:4px; font-size:11px; color:#d9c7a5; }
 .roundButton { pointer-events:auto; width:48px; height:48px; border:0; border-radius:50%; padding:2px; background:transparent; filter:drop-shadow(0 2px 5px rgba(0,0,0,.45)); }
 .roundButton img { width:100%; height:100%; object-fit:contain; }
+#zoomControls { position:absolute; z-index:15; top:max(68px, calc(env(safe-area-inset-top) + 68px)); right:max(8px, env(safe-area-inset-right)); display:flex; align-items:center; gap:4px; padding:4px; border:2px solid rgba(246,211,137,.72); border-radius:14px; background:rgba(24,18,12,.82); box-shadow:0 3px 12px rgba(0,0,0,.34); }
+.zoomButton { width:44px; height:44px; border:1px solid rgba(255,232,177,.8); border-radius:10px; color:#fff4d2; background:rgba(73,49,27,.95); font-size:29px; font-weight:900; line-height:1; touch-action:none; }
+.zoomButton:active { transform:scale(.95); background:rgba(151,101,44,.95); }
+.zoomButton:disabled { opacity:.35; }
+#zoomLevel { min-width:50px; text-align:center; font-size:12px; font-weight:900; color:#ffe2a0; letter-spacing:.03em; }
 #controls { position:absolute; z-index:14; inset:auto max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); display:flex; align-items:flex-end; justify-content:space-between; pointer-events:none; }
 .dpad { position:relative; width:154px; height:154px; pointer-events:auto; }
 .dir { position:absolute; width:54px; height:54px; border:2px solid rgba(255,232,177,.86); border-radius:18px; color:#fff5d7; background:rgba(40,28,17,.78); box-shadow:0 3px 9px rgba(0,0,0,.35); font-size:24px; font-weight:900; touch-action:none; }
@@ -49,7 +54,9 @@ button { font:inherit; }
 .compact { width:min(400px,92vw); }
 @media (max-width: 620px) and (orientation: portrait) {
   .missionCard { width:calc(100% - 56px); }.dpad { width:140px; height:140px; }.dir { width:50px; height:50px; }.dir.up,.dir.down { left:45px; }.dir.left,.dir.right { top:45px; } #interactButton { width:82px; height:82px; } #interactButton img { width:56px; height:56px; }
+  #zoomControls { top:max(66px, calc(env(safe-area-inset-top) + 66px)); }.zoomButton { width:42px; height:42px; }
 }
 @media (max-height: 430px) {
   .missionCard { min-height:52px; }.missionCard #questIcon { width:42px; height:42px; }.eyebrow { font-size:8px; } #objective { font-size:14px; } #progressText { font-size:9px; }.dpad { width:126px; height:126px; }.dir { width:46px; height:46px; border-radius:15px; font-size:20px; }.dir.up,.dir.down { left:40px; }.dir.left,.dir.right { top:40px; } #interactButton { width:76px; height:76px; font-size:9px; } #interactButton img { width:50px; height:50px; }.introBadge { height:95px; }.overlayCard { padding:10px 14px; }.overlayCard p { font-size:12px; margin:5px auto 8px; }.overlayCard h1 { font-size:30px; }.miniRules { margin:5px 0; }.primaryButton,.secondaryButton { min-height:42px; padding:7px 13px; }
+  #zoomControls { top:max(58px, calc(env(safe-area-inset-top) + 58px)); }.zoomButton { width:38px; height:38px; font-size:25px; } #zoomLevel { min-width:44px; font-size:11px; }
 }
