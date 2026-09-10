@@ -1,24 +1,68 @@
 (() => {
-  'use strict';
-  window.AB001_GAME_PARTS=[];
-  let part=1;
-  function next() {
-    if (part>6) {
-      try {
-        const code=atob(window.AB001_GAME_PARTS.join(''));
-        (0,Function)(code)();
-      } catch (err) {
-        console.error('AB001 game failed to start',err);
-        const b=document.getElementById('startButton');
-        if (b) { b.disabled=true; b.textContent='GAME LOAD ERROR'; }
-      }
-      return;
-    }
-    const s=document.createElement('script');
-    s.src=`game-parts/game-part${String(part).padStart(2,'0')}.js?v=1`;
-    s.onload=()=>{part++;next();};
-    s.onerror=()=>console.error('Could not load AB001 game part',part);
-    document.head.appendChild(s);
-  }
-  next();
+'use strict';
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const shell=document.getElementById('gameShell');
+const objectiveEl=document.getElementById('objective'),progressEl=document.getElementById('progressText'),toastEl=document.getElementById('toast');
+const intro=document.getElementById('intro'),pause=document.getElementById('pause'),complete=document.getElementById('complete');
+const startBtn=document.getElementById('startButton'),menuBtn=document.getElementById('menuButton'),resumeBtn=document.getElementById('resumeButton'),restartBtn=document.getElementById('restartButton'),againBtn=document.getElementById('playAgainButton'),interactBtn=document.getElementById('interactButton');
+const keys=new Set(),touchDirs=new Set();
+let vw=960,vh=540,dpr=1,last=performance.now(),running=false,paused=true,phase='haran',world={w:2800,h:1700},cam={x:0,y:0},toastTimer=0;
+const atlas=new Image();let atlasReady=false;
+const SOURCE=1254,ATLAS=640,S=ATLAS/SOURCE;
+const R={
+ abramFront:[5,5,165,230],abramRight1:[170,5,160,235],abramRight2:[320,5,150,235],abramRight3:[460,5,155,235],abramRight4:[605,5,145,235],abramBack:[895,5,170,240],
+ sarai:[10,245,85,175],lot:[360,245,85,175],servant:[680,245,80,175],girl:[918,245,82,175],sheep:[15,425,120,185],camel:[372,418,98,207],
+ grain:[470,620,120,135],pack:[610,635,135,125],roll:[10,620,180,135],wall:[335,1115,145,130],gate:[835,930,410,185],palm:[690,915,165,225],well:[530,925,170,185],tent:[10,920,320,190],altar:[335,930,195,180],rock:[705,790,150,130],thorn:[560,790,145,130],cart:[845,790,180,130],guard:[10,750,80,170],campfire:[780,1120,140,125]
+};
+const player={x:420,y:1030,r:24,speed:235,dir:'down',moving:false,anim:0};
+let scene=[],things=[],walls=[],followers=[],trail=[],prep=null,journey=null;
+function fresh(){return{sarai:false,lot:false,household:0,supplies:0,animals:0,ready:false};}
+function loadAtlas(){return new Promise(resolve=>{window.ABRAM_ATLAS_PARTS=[];let i=1;function next(){if(i>13){atlas.onload=()=>{atlasReady=true;startBtn.disabled=false;startBtn.textContent='BEGIN MISSION';resolve();};atlas.onerror=()=>{startBtn.disabled=false;startBtn.textContent='BEGIN MISSION';resolve();};atlas.src='data:image/avif;base64,'+window.ABRAM_ATLAS_PARTS.join('');return;}const s=document.createElement('script');s.src=`../ab001-art/abram-avif-part${String(i).padStart(2,'0')}.js?v=3`;s.onload=()=>{i++;next();};s.onerror=()=>{i++;next();};document.head.appendChild(s);}next();});}
+function sprite(name,x,y,w,alpha=1,flip=false){if(!atlasReady||!R[name])return;const r=R[name],h=w*(r[3]/r[2]);ctx.save();ctx.globalAlpha=alpha;if(flip){ctx.translate(x,0);ctx.scale(-1,1);ctx.translate(-x,0);}ctx.drawImage(atlas,r[0]*S,r[1]*S,r[2]*S,r[3]*S,x-w/2,y-h,w,h);ctx.restore();}
+function addScene(img,x,y,w,z=0,flip=false){scene.push({img,x,y,w,z,flip});}
+function addWall(x,y,w,h){walls.push({x,y,w,h});}
+function addThing(type,id,img,x,y,w,label,kind=img){things.push({type,id,img,x,y,w,label,kind,done:false});}
+function buildHaran(){phase='haran';world={w:2800,h:1700};scene=[];things=[];walls=[];followers=[];trail=[];prep=fresh();journey={water:false,sheep:false};player.x=420;player.y=1030;player.dir='down';
+ for(let x=80;x<2700;x+=135){addScene('wall',x,105,125);addScene('wall',x,1600,125);}for(let y=210;y<1570;y+=120){addScene('wall',85,y,115);addScene('wall',2700,y,115);} 
+ addScene('gate',2560,865,410,2);addWall(2500,700,270,180);
+ const tents=[[500,390,300],[1050,360,290],[1580,430,300],[2050,350,290],[620,920,320],[1260,870,300],[1830,970,310]];tents.forEach(([x,y,w])=>{addScene('tent',x,y,w,1);addWall(x-w*.35,y-w*.22,w*.7,w*.28);});
+ [[300,300],[2350,320],[350,1460],[2350,1450],[1500,1450],[900,1430]].forEach(([x,y])=>addScene('palm',x,y,180));
+ [[820,650],[1500,650],[2150,670],[1040,1190],[1780,1220]].forEach(([x,y])=>addScene('rock',x,y,125));
+ addScene('well',1120,1290,180,1);addScene('altar',1650,1330,190,1);addScene('cart',1900,650,210,1);addScene('guard',2420,910,95,3);
+ addThing('recruit','sarai','sarai',700,610,92,'Sarai','sarai');addThing('recruit','lot','lot',1470,1160,92,'Lot','lot');
+ addThing('house','h1','servant',470,1180,86,'Household worker','servant');addThing('house','h2','girl',1680,620,82,'Household worker','girl');addThing('house','h3','servant',2140,1080,86,'Household elder','servant');
+ addThing('supply','s1','grain',900,1110,110,'Grain and goods','grain');addThing('supply','s2','roll',1520,830,120,'Tent rolls','roll');addThing('supply','s3','pack',2190,520,110,'Household possessions','pack');
+ addThing('animal','a1','sheep',690,1430,88,'Sheep','sheep');addThing('animal','a2','sheep',920,1480,88,'Sheep','sheep');addThing('animal','a3','sheep',1250,1490,88,'Lamb','sheep');addThing('animal','a4','camel',1900,1430,105,'Pack camel','camel');addThing('animal','a5','camel',2210,1390,105,'Pack camel','camel');
+ addThing('gate','gate','gate',2560,865,400,'Gate of Haran','gate');updateHUD();}
+function buildJourney(){phase='journey';world={w:3600,h:1800};scene=[];things=[];walls=[];trail=[];player.x=240;player.y=920;player.dir='right';
+ [[350,470],[760,1380],[1100,480],[1500,1320],[1820,500],[2400,1320],[2850,470],[3180,1360]].forEach(([x,y])=>addScene('palm',x,y,175));
+ [[650,650],[930,1180],[1700,720],[2150,1050],[2500,690],[2770,1120]].forEach(([x,y])=>addScene('rock',x,y,145));
+ [[850,520],[2000,1360],[2600,470]].forEach(([x,y])=>addScene('thorn',x,y,120));
+ addScene('well',1320,880,185,1);addScene('campfire',1780,1040,120,1);addScene('tent',1810,900,270,1);addScene('altar',3000,930,180,1);addScene('gate',3380,880,390,2);
+ addThing('water','water','well',1320,880,175,'Water the caravan','well');addThing('lost','lost','sheep',2070,540,92,'Wandering sheep','sheep');addThing('canaan','canaan','gate',3380,880,380,'Canaan','gate');
+ followers.forEach((f,i)=>{f.x=160-i*38;f.y=970+(i%2)*35;});showToast('The caravan has left Haran. Lead everyone toward Canaan.',2600);updateHUD();}
+function prepPct(){const d=(prep.sarai?1:0)+(prep.lot?1:0)+prep.household+prep.supplies+prep.animals;return Math.round(d/13*100);}
+function currentObjective(){if(phase==='haran'){if(!prep.sarai)return'Find Sarai in Haran';if(!prep.lot)return'Find Lot and bring him to the caravan';if(prep.household<3)return`Gather the household (${prep.household}/3)`;if(prep.supplies<3)return`Collect the possessions (${prep.supplies}/3)`;if(prep.animals<5)return`Round up the animals (${prep.animals}/5)`;return'Caravan ready — go to the gate of Haran';}if(phase==='journey'){if(!journey.water)return'Lead the caravan to the well and water the animals';if(!journey.sheep)return'A sheep wandered away — find it';return'Keep the caravan together and reach Canaan';}return'Mission complete';}
+function updateHUD(){objectiveEl.textContent=currentObjective();progressEl.textContent=phase==='haran'?`Caravan preparation: ${prepPct()}%`:phase==='journey'?`Journey to Canaan: ${Math.max(0,Math.min(100,Math.round((player.x-240)/(3380-240)*100)))}%`:'AB001 complete';}
+function showToast(t,ms=1800){toastEl.textContent=t;toastEl.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),ms);}
+function nearThing(){let best=null,bd=125;for(const o of things){if(o.done)continue;const d=Math.hypot(player.x-o.x,player.y-o.y);if(d<bd){bd=d;best=o;}}return best;}
+function addFollower(kind){const p=trail[Math.min(trail.length-1,24)]||{x:player.x-50,y:player.y+40};followers.push({kind,x:p.x,y:p.y,dir:'down',w:(kind==='camel'?98:kind==='sheep'?78:76)});}
+function checkReady(){prep.ready=prep.sarai&&prep.lot&&prep.household>=3&&prep.supplies>=3&&prep.animals>=5;if(prep.ready)showToast('Caravan ready! Lead everyone to the gate of Haran.',2600);}
+function interact(){if(!running||paused||phase==='complete')return;const o=nearThing();if(!o){showToast('Nothing to interact with here.',800);return;}if(o.type==='recruit'){o.done=true;if(o.id==='sarai')prep.sarai=true;else prep.lot=true;addFollower(o.kind);showToast(`${o.label} joined Abram.`);}else if(o.type==='house'){o.done=true;prep.household++;addFollower(o.kind);showToast(`Household gathered — ${prep.household}/3.`);}else if(o.type==='supply'){o.done=true;prep.supplies++;addFollower(o.kind);showToast(`Possessions loaded — ${prep.supplies}/3.`);}else if(o.type==='animal'){o.done=true;prep.animals++;addFollower(o.kind);showToast(`${o.label} rounded up — ${prep.animals}/5.`);}else if(o.type==='gate'){if(!prep.ready){showToast('The caravan is not ready yet. Finish the preparation objectives.',2200);return;}o.done=true;buildJourney();return;}else if(o.type==='water'){o.done=true;journey.water=true;showToast('The caravan is watered and ready to continue.',2000);}else if(o.type==='lost'){if(!journey.water){showToast('Water the caravan first.',1200);return;}o.done=true;journey.sheep=true;addFollower('sheep');showToast('Wandering sheep recovered. Continue toward Canaan.',2200);}else if(o.type==='canaan'){if(!journey.water||!journey.sheep){showToast('The caravan still has unfinished needs on the road.',1800);return;}finish();return;}checkReady();updateHUD();}
+function finish(){phase='complete';paused=true;updateHUD();complete.classList.add('visible');}
+function blocked(nx,ny){if(nx<45||ny<120||nx>world.w-45||ny>world.h-45)return true;for(const r of walls){if(nx+player.r>r.x&&nx-player.r<r.x+r.w&&ny+player.r>r.y&&ny-player.r<r.y+r.h)return true;}return false;}
+function update(dt){if(!running||paused)return;let dx=0,dy=0;if(keys.has('KeyW')||keys.has('ArrowUp')||touchDirs.has('up'))dy--;if(keys.has('KeyS')||keys.has('ArrowDown')||touchDirs.has('down'))dy++;if(keys.has('KeyA')||keys.has('ArrowLeft')||touchDirs.has('left'))dx--;if(keys.has('KeyD')||keys.has('ArrowRight')||touchDirs.has('right'))dx++;player.moving=!!(dx||dy);if(player.moving){const l=Math.hypot(dx,dy);dx/=l;dy/=l;if(Math.abs(dx)>Math.abs(dy))player.dir=dx<0?'left':'right';else player.dir=dy<0?'up':'down';const step=player.speed*dt,nx=player.x+dx*step,ny=player.y+dy*step;if(!blocked(nx,player.y))player.x=nx;if(!blocked(player.x,ny))player.y=ny;player.anim+=dt*7;trail.unshift({x:player.x,y:player.y,dir:player.dir});if(trail.length>500)trail.length=500;}else player.anim=0;
+ followers.forEach((f,i)=>{const t=trail[Math.min(trail.length-1,18+i*12)];if(!t)return;const k=Math.min(1,dt*5.3);f.x+=(t.x-f.x)*k;f.y+=(t.y-f.y)*k;f.dir=t.dir;});
+ const tx=player.x-vw*.5,ty=player.y-vh*.5;cam.x+=(tx-cam.x)*Math.min(1,dt*6);cam.y+=(ty-cam.y)*Math.min(1,dt*6);cam.x=Math.max(0,Math.min(world.w-vw,cam.x));cam.y=Math.max(0,Math.min(world.h-vh,cam.y));if(phase==='journey')updateHUD();}
+function drawGround(){ctx.fillStyle=phase==='haran'?'#c99955':'#d4ad68';ctx.fillRect(0,0,vw,vh);ctx.save();ctx.translate(-cam.x,-cam.y);ctx.fillStyle='rgba(109,67,32,.12)';if(phase==='haran'){ctx.beginPath();ctx.roundRect(180,790,2450,300,120);ctx.fill();ctx.beginPath();ctx.roundRect(1080,160,360,1420,120);ctx.fill();}else{ctx.beginPath();ctx.roundRect(80,760,3400,330,150);ctx.fill();ctx.fillStyle='rgba(82,130,62,.22)';ctx.fillRect(2860,0,740,1800);}ctx.restore();}
+function drawWorld(){drawGround();ctx.save();ctx.translate(-cam.x,-cam.y);const list=[];scene.forEach(s=>list.push({type:'scene',y:s.y,o:s}));things.forEach(o=>{if(!o.done)list.push({type:'thing',y:o.y,o});});followers.forEach(f=>list.push({type:'follow',y:f.y,o:f}));list.push({type:'player',y:player.y,o:player});list.sort((a,b)=>a.y-b.y);const n=nearThing();for(const d of list){if(d.type==='scene'){const s=d.o;sprite(s.img,s.x,s.y,s.w,1,s.flip);}else if(d.type==='thing'){const o=d.o;if(o===n){ctx.save();ctx.strokeStyle='rgba(255,224,113,.95)';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(o.x,o.y+10,o.w*.55,o.w*.22,0,0,Math.PI*2);ctx.stroke();ctx.restore();}sprite(o.img,o.x,o.y,o.w);}else if(d.type==='follow'){const f=d.o;sprite(f.kind,f.x,f.y,f.w,.96);}else{let sp='abramFront',flip=false;if(player.dir==='up')sp='abramBack';else if(player.dir==='left'||player.dir==='right'){const arr=['abramRight1','abramRight2','abramRight3','abramRight4'];sp=arr[Math.floor(player.anim)%arr.length];flip=player.dir==='left';}sprite(sp,player.x,player.y,112,1,flip);}}
+ if(n){ctx.font='900 14px system-ui';ctx.textAlign='center';const text=n.type==='gate'&&!prep.ready?'FINISH OBJECTIVES':'INTERACT';const w=ctx.measureText(text).width+20;ctx.fillStyle='rgba(28,19,10,.88)';ctx.strokeStyle='#f0c668';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(n.x-w/2,n.y-n.w-42,w,28,10);ctx.fill();ctx.stroke();ctx.fillStyle='#fff2c7';ctx.fillText(text,n.x,n.y-n.w-22);}ctx.restore();}
+function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,vw,vh);drawWorld();}
+function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;update(dt);render();requestAnimationFrame(loop);}
+function resize(){dpr=Math.min(2,window.devicePixelRatio||1);vw=Math.max(320,shell.clientWidth);vh=Math.max(320,shell.clientHeight);canvas.width=Math.round(vw*dpr);canvas.height=Math.round(vh*dpr);canvas.style.width=vw+'px';canvas.style.height=vh+'px';}
+function reset(){complete.classList.remove('visible');pause.classList.remove('visible');buildHaran();running=true;paused=false;last=performance.now();}
+window.addEventListener('resize',resize,{passive:true});window.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();if(e.code==='Space'||e.code==='Enter'){if(!e.repeat)interact();return;}if(e.code==='Escape'&&running&&phase!=='complete'){paused=!paused;pause.classList.toggle('visible',paused);return;}keys.add(e.code);});window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{keys.clear();touchDirs.clear();if(running&&phase!=='complete'){paused=true;pause.classList.add('visible');}});
+document.querySelectorAll('.dir').forEach(btn=>{const dir=btn.dataset.dir;const down=e=>{e.preventDefault();touchDirs.add(dir);btn.classList.add('active');try{btn.setPointerCapture(e.pointerId);}catch{}};const up=e=>{e.preventDefault();touchDirs.delete(dir);btn.classList.remove('active');};btn.addEventListener('pointerdown',down);btn.addEventListener('pointerup',up);btn.addEventListener('pointercancel',up);btn.addEventListener('lostpointercapture',up);});
+interactBtn.addEventListener('pointerdown',e=>{e.preventDefault();interact();});menuBtn.addEventListener('click',()=>{if(running&&phase!=='complete'){paused=true;pause.classList.add('visible');}});resumeBtn.addEventListener('click',()=>{paused=false;pause.classList.remove('visible');last=performance.now();});restartBtn.addEventListener('click',reset);againBtn.addEventListener('click',reset);startBtn.addEventListener('click',()=>{intro.classList.remove('visible');reset();showToast('Explore Haran. Find Sarai first.',1800);});
+resize();buildHaran();startBtn.disabled=true;startBtn.textContent='LOADING ART…';loadAtlas();requestAnimationFrame(loop);
 })();
