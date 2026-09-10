@@ -1,0 +1,24 @@
+/* Make Royale use the same phone presentation as the single-player endless run. */
+#royaleRotate{display:none;position:fixed;z-index:1000;inset:0;background:#03050cf7;place-items:center;text-align:center;padding:30px;color:#f7f9ff}
+#royaleRotate .phone{font-size:58px;transform:rotate(90deg);margin-bottom:12px}
+#royaleRotate h2{margin:8px 0 5px;font-size:28px}
+#royaleRotate p{margin:0;color:#98a8ce;font-weight:750}
+@media (orientation:portrait){
+  #gameScreen.active #royaleRotate{display:grid}
+}
+@media (orientation:landscape){
+  html,body{width:100%;height:100%;overflow:hidden;background:#020309}
+  #app{position:fixed;inset:0;width:100%;max-width:none;min-height:0;height:100dvh;margin:0;padding:0}
+  #gameScreen.active{position:fixed;inset:0;min-height:0;height:100dvh;display:block;overflow:hidden;background:#020309}
+  .game-header{position:absolute;z-index:20;left:0;right:0;top:0;height:40px;min-height:40px;padding:0 8px;background:rgba(4,7,17,.96);border-bottom:1px solid #2e427e;display:flex;align-items:center}
+  .game-header .reference{font-size:13px}.game-header .next-word{font-size:10px;margin-top:0}.game-header .lives{font-size:13px}
+  .opponents-bar{position:absolute;z-index:21;top:40px;right:6px;width:min(42vw,390px);height:30px;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:transparent;pointer-events:none}
+  .opponent-chip{padding:3px 5px;background:rgba(5,11,27,.86);backdrop-filter:blur(3px)}
+  .opponent-top{font-size:8px}.opponent-progress{margin-top:2px;height:4px}
+  .verse-strip{position:absolute;z-index:19;left:0;right:0;top:40px;height:30px;min-height:30px;max-height:30px;border:0;border-bottom:1px solid rgba(255,255,255,.08);border-radius:0;padding:6px 8px 4px;padding-right:min(44vw,410px);white-space:nowrap;overflow:hidden;background:rgba(4,7,17,.90);font-size:10px;line-height:18px}
+  .canvas-wrap{position:absolute!important;z-index:1;left:0;right:0;top:70px;bottom:0;width:100%!important;height:auto!important;max-width:none!important;margin:0;border:0;border-radius:0;box-shadow:none;overflow:hidden;background:#020309}
+  #gameCanvas{position:absolute;inset:0;width:100%!important;height:100%!important;max-width:none;display:block;object-fit:fill}
+  .canvas-wrap::before{top:6px;font-size:8px;opacity:.65}
+  .royale-swipe-hint{bottom:14px}
+  .endless-stats{bottom:8px;right:8px}
+}
