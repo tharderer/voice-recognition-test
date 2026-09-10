@@ -1,0 +1,26 @@
+:root{
+  --ink:#392717;
+  --cream:#fff8e8;
+  --gold:#c8903c;
+  --gold2:#e7c781;
+  --brown:#765020;
+  --shadow:rgba(41,27,15,.24);
+}
+*{box-sizing:border-box;touch-action:manipulation}
+html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#f4e7c7,#d5ad67);color:var(--ink);font-family:Arial,Helvetica,sans-serif;overscroll-behavior:none}
+body{min-height:100dvh;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+#app{width:min(1180px,100%);margin:0 auto;display:flex;flex-direction:column;gap:8px;min-height:calc(100dvh - 16px)}
+.hud{display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(255,248,232,.96);border:3px solid #9b6c2b;border-radius:16px;padding:8px 12px;box-shadow:0 6px 18px var(--shadow)}
+.mission-title{display:flex;flex-direction:column;min-width:0}.mission-title strong{font-size:clamp(.85rem,2vw,1.1rem);letter-spacing:.08em;color:#86591f}.mission-title span{font-size:clamp(1.15rem,3vw,1.8rem);font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats{display:flex;gap:7px}.stats>div{min-width:72px;padding:5px 8px;text-align:center;background:#fff;border:2px solid #d2ab62;border-radius:12px}.stats small{display:block;font-size:.68rem;text-transform:uppercase}.stats b{display:block;font-size:1.15rem;margin-top:1px}
+.story-strip{background:rgba(255,255,255,.85);border:2px solid #c99d50;border-radius:12px;padding:6px 10px;text-align:center;font-weight:700;font-size:clamp(.78rem,2vw,.98rem)}
+.game-frame{position:relative;flex:1;min-height:0;background:#3d2a18;border:4px solid #7b5326;border-radius:18px;overflow:hidden;box-shadow:0 10px 24px var(--shadow);display:flex;align-items:center;justify-content:center}
+canvas{display:block;max-width:100%;max-height:100%;width:auto;height:auto;aspect-ratio:3/2;background:#ddbf7d;touch-action:none}
+.mini-checklist{position:absolute;left:8px;bottom:8px;max-width:50%;display:flex;flex-wrap:wrap;gap:4px;pointer-events:none}.mission-chip{background:rgba(255,248,232,.9);border:1px solid #9c6a29;border-radius:999px;padding:3px 6px;font-size:10px;font-weight:800;box-shadow:0 2px 6px rgba(0,0,0,.14)}.mission-chip.done{opacity:.46;text-decoration:line-through}
+.dpad{position:absolute;right:12px;bottom:12px;width:154px;height:154px;display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px);gap:5px;z-index:5;filter:drop-shadow(0 5px 8px rgba(0,0,0,.32))}.dpad button{border:2px solid rgba(70,42,14,.9);background:rgba(255,244,214,.9);color:#4c3015;border-radius:13px;font-size:22px;font-weight:900}.dpad button:active{transform:scale(.94);background:#f4cf86}.dpad .up{grid-column:2;grid-row:1}.dpad .left{grid-column:1;grid-row:2}.dpad .center{grid-column:2;grid-row:2;font-size:18px}.dpad .right{grid-column:3;grid-row:2}.dpad .down{grid-column:2;grid-row:3}
+.overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(42,27,12,.64);z-index:10}.overlay.visible{display:flex}.card-panel{width:min(520px,94%);background:linear-gradient(#fffaf0,#f3ddb1);border:4px solid #a16c27;border-radius:22px;padding:20px;text-align:center;box-shadow:0 14px 34px rgba(0,0,0,.4)}.eyebrow{font-size:.8rem;letter-spacing:.12em;font-weight:900;color:#8a591d}.card-panel h1{font-size:clamp(1.7rem,5vw,2.7rem);margin:7px 0 10px}.card-panel p{font-size:clamp(.95rem,2.5vw,1.15rem);line-height:1.4;margin:0 0 14px}.card-panel button{border:0;border-radius:999px;padding:12px 22px;background:#a96a1e;color:#fff;font-weight:900;font-size:1.05rem;box-shadow:0 5px 0 #704315}.card-panel button:active{transform:translateY(3px);box-shadow:0 2px 0 #704315}
+.footer-note{text-align:center;font-size:.75rem;font-weight:700;color:#573719;padding:1px 0 3px}
+@media (orientation:landscape) and (max-height:620px){
+  body{padding:4px}.hud{padding:4px 9px;border-width:2px;border-radius:10px}.mission-title strong{font-size:.68rem}.mission-title span{font-size:1rem}.stats>div{min-width:58px;padding:2px 5px}.stats small{font-size:.56rem}.stats b{font-size:.9rem}.story-strip{display:none}.footer-note{display:none}#app{gap:4px;min-height:calc(100dvh - 8px)}.game-frame{border-width:2px;border-radius:10px}.dpad{right:8px;bottom:8px;width:126px;height:126px;grid-template-columns:repeat(3,39px);grid-template-rows:repeat(3,39px);gap:4px}.dpad button{font-size:17px;border-radius:10px}.dpad .center{font-size:14px}.mini-checklist{max-width:65%;left:5px;bottom:5px}.mission-chip{font-size:8px;padding:2px 4px}.card-panel{max-height:94%;overflow:auto;padding:12px}.card-panel h1{font-size:1.5rem;margin:4px 0 6px}.card-panel p{font-size:.86rem;margin-bottom:8px}.card-panel button{padding:9px 17px;font-size:.9rem}
+}
+@media (orientation:portrait){.game-frame{min-height:min(65vh,700px)}.dpad{right:8px;bottom:8px;transform:scale(.9);transform-origin:right bottom}.mini-checklist{max-width:60%}}
