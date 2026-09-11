@@ -31,26 +31,59 @@ jobs:
           unzip -q templates.tpz -d /tmp/godot-templates
           cp -a /tmp/godot-templates/templates/. "$HOME/.local/share/godot/export_templates/4.7.2.stable/"
 
-      - name: Import project and export Web build
+      - name: Apply source safety fix
         shell: bash
         run: |
           set -euxo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('godot-ab001/scripts/main.gd')
+          text = p.read_text()
+          text = text.replace(
+              'var history_index := min(20 + i * 23, last_player_positions.size() - 1)',
+              'var history_index: int = mini(20 + i * 23, last_player_positions.size() - 1)'
+          )
+          p.write_text(text)
+          PY
+
+      - name: Validate Godot project
+        shell: bash
+        run: |
+          set -o pipefail
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot-ab001 --editor --quit 2>&1 | tee godot-import.log
+          status=${PIPESTATUS[0]}
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script' godot-import.log; then
+            echo 'Godot reported a script error.'
+            exit 1
+          fi
+          exit "$status"
+
+      - name: Export Web build
+        shell: bash
+        run: |
+          set -o pipefail
           rm -rf godot-ab001-play
           mkdir -p godot-ab001-play
-          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot-ab001 --editor --quit
-          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot-ab001 --export-release Web ../godot-ab001-play/index.html
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot-ab001 --export-release Web ../godot-ab001-play/index.html 2>&1 | tee godot-export.log
+          status=${PIPESTATUS[0]}
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script' godot-export.log; then
+            echo 'Godot reported a script error during export.'
+            exit 1
+          fi
+          test "$status" -eq 0
           touch godot-ab001-play/.nojekyll
 
-      - name: Commit playable build into GitHub Pages tree
+      - name: Commit corrected source and playable build
         shell: bash
         run: |
           set -euxo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add godot-ab001/scripts/main.gd
           git add -f godot-ab001-play
           if git diff --cached --quiet; then
             echo 'No build changes to commit.'
           else
-            git commit -m 'Build AB001 Godot web game [skip ci]'
+            git commit -m 'Fix and build AB001 Godot web game [skip ci]'
             git push
           fi
