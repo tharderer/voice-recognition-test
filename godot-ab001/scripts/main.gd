@@ -249,7 +249,7 @@ func _spawn(kind: String, pos: Vector2, scale_value: float) -> Sprite2D:
 func _move_followers(delta: float) -> void:
     for i in range(followers.size()):
         var f := followers[i]
-        var history_index := min(20 + i * 23, last_player_positions.size() - 1)
+        var history_index: int = mini(20 + i * 23, last_player_positions.size() - 1)
         if history_index >= 0:
             var target := last_player_positions[history_index]
             f.position = f.position.lerp(target, min(1.0, delta * 5.0))
