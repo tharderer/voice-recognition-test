@@ -13,6 +13,12 @@
   <div class="sub">Bible memory arcade + playable Hero Card missions</div>
 
   <div class="card heroCard">
+    <div class="heroTop"><div><div class="heroBadge">NEW • AB001 • 3D REMAKE</div><div class="heroTitle">THE ROAD TO CANAAN</div><div class="heroRef">Abram Leaves Everything • Genesis 12:1–5 KJV</div></div><div class="camelMark">🧭</div></div>
+    <div class="heroObjective"><b>GATHER. PROTECT. CROSS. ENDURE.</b><br>Lead Abram’s household out of Haran in a new 3D adventure. Rescue a wandering lamb, drive wolves away with your staff, repair a river crossing, and guide the whole caravan through falling rocks. Four chapters, three difficulty levels, swipe controls, and saved checkpoints. Travel hazards are fictional additions to the biblical journey.</div>
+    <form action="./godot-ab001/" method="get"><button class="missionStart" type="submit">PLAY AB001 — THE ROAD TO CANAAN</button></form>
+  </div>
+
+  <div class="card heroCard">
     <div class="heroTop"><div><div class="heroBadge">NEW · BLENDER + GODOT · REAL 3D</div><div class="heroTitle">BUILD A BEAST — KNOW THE WHOLE VERSE</div><div class="heroRef">Hide the Word · 8 KJV verses · Unassisted recall</div></div><div class="camelMark">🐲</div></div>
     <div class="heroObjective"><b>HATCH. EVOLVE. DEFEAT THE COPYCAT KING.</b><br>Control your 3D creature, collect crystals, dash through robots, leap over shockwaves, and earn armor, wings, and a cannon. Victory requires the entire verse twice from memory, with a battle between checks. Type every word or record a complete recitation. No answer choices.</div>
     <form action="./beast/" method="get"><button class="missionStart" type="submit">PLAY BUILD A BEAST — 3D MEMORY ADVENTURE</button></form>
@@ -25,22 +31,18 @@
     <form action="./ab002-adventure/" method="get"><button class="missionStart" type="submit">PLAY AB002 — SHECHEM ADVENTURE</button></form>
   </div>
 
-  <div class="card heroCard">
-    <div class="heroTop"><div><div class="heroBadge">HERO ADVENTURE • AB001</div><div class="heroTitle">LEAVE HARAN — TOP-DOWN EXPLORER</div><div class="heroRef">Abraham • Genesis 12:1–5 KJV</div></div><div class="camelMark">🗺️</div></div>
-    <div class="heroObjective"><b>PLAY THE EXPLORER VERSION</b><br>Walk around Haran as Abram, find Sarai and Lot, gather the household, collect possessions, round up the animals, leave through the gate, and lead the caravan to Canaan using the custom generated adventure artwork.</div>
-    <form action="./ab001-adventure/" method="get"><button class="missionStart" type="submit">PLAY AB001 — ADVENTURE EXPLORER</button></form>
-  </div>
 
-  <div class="card heroCard">
+
+  <div class="card heroCard" hidden>
     <div class="heroTop"><div><div class="heroBadge">HERO MISSION • AB001</div><div class="heroTitle">GET THEE OUT OF THY COUNTRY</div><div class="heroRef">Abraham • Called to Canaan • Genesis 12:1–5 KJV</div></div><div class="camelMark">🐪</div></div>
     <div class="heroObjective"><b>FULL MISSION: LEAVE HARAN</b><br>Search the city, assemble Abram's entire caravan, force the city gate open, survive the road and rocky pass, and lead the caravan all the way into Canaan. The hazards are arcade obstacles; the story objectives follow Genesis 12:1–5.</div>
     <button id="startHero" class="missionStart">PLAY AB001 — FULL MISSION</button>
   </div>
-  <div class="card"><h2>WHAT'S NEW IN THIS BUILD</h2>
-    <div class="feature"><div class="ico">🏙️</div><div><b>Five distinct zones</b><small>Dense Haran streets, a city-gate escape, open road, rocky pass, then Canaan.</small></div></div>
-    <div class="feature"><div class="ico">🐪</div><div><b>Real caravan chain</b><small>Sarai, Lot, household and possessions visibly snake through the maze behind Abram.</small></div></div>
-    <div class="feature"><div class="ico">🌪️</div><div><b>Visible moving hazards</b><small>The hard-to-see moving Haran hazards are now large animated dust devils, with rockfalls and the pursuing sandstorm later in the mission.</small></div></div>
-    <div class="feature"><div class="ico">📜</div><div><b>KJV story checkpoints</b><small>The level advances through exact KJV text from Genesis 12 as the journey unfolds.</small></div></div>
+  <div class="card"><h2>NEW IN AB001</h2>
+    <div class="feature"><div class="ico">🏘️</div><div><b>A household depending on you</b><small>Find Sarai, Lot, the household, possessions, and animals. Bring everyone to each chapter’s exit.</small></div></div>
+    <div class="feature"><div class="ico">🐺</div><div><b>Protect the back of the caravan</b><small>Drive wolves away with your staff, call stragglers, and decide when to spend energy running.</small></div></div>
+    <div class="feature"><div class="ico">🌊</div><div><b>A crossing and a rockfall pass</b><small>Collect driftwood, repair the crossing, refill water, and dodge warned rockfall lanes.</small></div></div>
+    <div class="feature"><div class="ico">📜</div><div><b>KJV story checkpoints</b><small>Genesis 12:1–5 frames the journey. Added travel encounters are clearly identified as fiction.</small></div></div>
   </div>
   <div class="card"><h2>BATTLE ROYALE</h2>
     <div class="feature"><div class="ico">⚔️</div><div><b>2–4 player endless Verse Chomp race</b><small>Use the same scrolling maze and buffered swipe movement as single-player, chomp the KJV verse in order, survive ghosts and the rising glitch, and trigger Verse Power every four correct words.</small></div></div>
@@ -66,5 +68,6 @@
 <script src="dust-devil-fix.js?v=3"></script>
 <script src="verse-predator-fix.js?v=2"></script>
 <script src="verse-spent-words-fix.js?v=2"></script>
+<script src="ab001-remake-link.js?v=1"></script>
 </body>
 </html>
