@@ -19,6 +19,7 @@ jobs:
           cp -R ../godot/ab001/. godot/ab001/
       - name: Rebuild custom AB001 art atlas
         run: |
+          mkdir -p godot/ab001/art
           python godot/ab001/tools/rebuild_atlas.py
           python -m pip install --quiet pillow pillow-avif-plugin
           python - <<'PY'
