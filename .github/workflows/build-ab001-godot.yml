@@ -14,7 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Write AB001 Godot source
-        run: python godot/ab001/build_project.py
+        run: |
+          python godot/ab001/build_project.py
+          cp -R ../godot/ab001/. godot/ab001/
       - name: Rebuild custom AB001 art atlas
         run: |
           python godot/ab001/tools/rebuild_atlas.py
