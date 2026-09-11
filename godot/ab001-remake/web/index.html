@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#132d43">
+  <meta name="description" content="Lead Abram's caravan from Haran to Canaan. A Blender and Godot 3D hero-card adventure inspired by Genesis 12:1–5.">
+  <title>AB001 · The Road to Canaan</title>
+  <link rel="stylesheet" href="adventure.css?v=1">
+</head>
+<body>
+  <iframe id="game" src="engine.html" title="The Road to Canaan — 3D game" allow="autoplay; fullscreen" tabindex="0"></iframe>
+  <div id="hud" hidden>
+    <header class="topbar">
+      <div class="chapter-label"><span class="eyebrow">AB001 <i> / </i><span id="chapterNumber">01</span></span><strong id="chapterName">HARAN</strong></div>
+      <button id="pause" class="small-button" aria-label="Pause and open menu">Ⅱ <span>MENU</span></button>
+    </header>
+    <div class="meters">
+      <div class="meter health"><span>CARAVAN <b id="healthValue">100</b></span><progress id="health" max="100" value="100" aria-label="Caravan condition"></progress></div>
+      <div class="meter water"><span>WATER <b id="waterValue">100</b></span><progress id="water" max="100" value="100" aria-label="Water"></progress></div>
+    </div>
+    <div class="objective"><div id="compass" aria-hidden="true">↑</div><div><small id="distance">YOUR NEXT STOP</small><strong id="goal">GATHER THE HOUSEHOLD</strong></div></div>
+    <div class="zoom"><button id="zoomIn" aria-label="Zoom in">＋</button><button id="zoomOut" aria-label="Zoom out">−</button></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <footer class="controls">
+      <button id="call" class="action"><span class="action-icon">◎</span><strong>CALL</strong><small>Gather caravan</small></button>
+      <button id="staff" class="action"><span class="action-icon">╱</span><strong>STAFF</strong><small>Drive wolves off</small></button>
+      <button id="sprint" class="action"><span class="action-icon">»</span><strong>RUN</strong><small id="stamina">100% energy</small></button>
+      <button id="interact" class="action primary"><span class="action-icon">✦</span><strong>INTERACT</strong><small id="near">Get close & tap</small></button>
+    </footer>
+    <div class="swipe-tip" id="swipeTip">SWIPE THE WORLD TO MOVE · TAP TO STOP</div>
+  </div>
+  <main id="overlay" class="overlay">
+    <section id="panel" class="panel" aria-labelledby="panelTitle">
+      <div class="brandline"><a href="../">← ALL GAMES</a><span>HERO CARD <b>AB001</b></span></div>
+      <div class="intro-content">
+        <div class="edition"><span></span> A 3D CARAVAN ADVENTURE</div>
+        <h1 id="panelTitle">The road<br>to <em>Canaan.</em></h1>
+        <p class="lead">A call to leave. A household to lead.<br>A whole journey depending on you.</p>
+        <div class="route" aria-label="Four chapters"><span><b>01</b> GATHER</span><i>·</i><span><b>02</b> PROTECT</span><i>·</i><span><b>03</b> CROSS</span><i>·</i><span><b>04</b> ENDURE</span></div>
+        <p class="story">Become Abram. Round up your household in Haran, rescue a wandering lamb, hold off wolves, repair a crossing, and guide everyone through a rockfall pass.</p>
+        <fieldset class="difficulties"><legend>CHOOSE YOUR JOURNEY</legend><label><input type="radio" name="difficulty" value="explorer"><span>Explorer<small>Room to learn</small></span></label><label><input type="radio" name="difficulty" value="trailblazer" checked><span>Trailblazer<small>Stay sharp</small></span></label><label><input type="radio" name="difficulty" value="hard"><span>Pathfinder<small>No easy road</small></span></label></fieldset>
+        <button id="start" class="big-button" disabled>PREPARING YOUR CARAVAN…</button>
+        <button id="continue" class="text-button" hidden>CONTINUE SAVED JOURNEY</button>
+        <div id="loadStatus" class="load-status" role="status">Loading the 3D world. The first visit downloads the game engine.</div>
+        <details><summary>How to lead your caravan</summary><p><b>Phone:</b> swipe the world in the direction you want to go. Longer swipes travel farther. Tap to stop. Use INTERACT near the gold marker. RUN gives a short burst; CALL helps stragglers catch up; STAFF drives nearby wolves away. Use + / − to change the view.</p><p><b>Keyboard:</b> WASD or arrows to move · E to interact · Space for staff · Q to call · Shift to run. Click the world to focus the keyboard.</p><p>Watch your caravan condition and water. Camps save your chapter on this device. If the caravan is exhausted, retry the current chapter. Pausing stops the hazards.</p></details>
+        <p class="source-note">ABRAM LEAVES EVERYTHING · Genesis 12:1–5, KJV.<br>The household and journey come from Scripture. The wolf, river, supply, and rockfall encounters are fictional gameplay additions.</p>
+      </div>
+    </section>
+  </main>
+  <div id="flash" aria-hidden="true"></div>
+  <script src="adventure.js?v=1"></script>
+</body>
+</html>
