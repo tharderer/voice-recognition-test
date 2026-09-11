@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101831">
+  <meta name="description" content="A swipe-controlled KJV Bible memory sky adventure. Dodge, jump, collect the verse, and break the storm.">
+  <title>Hide the Word: Skybreak</title>
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<main id="app">
+  <canvas id="world" aria-label="Skybreak game: swipe left or right to change lanes, up to jump, down to burst. You can also tap the lane buttons."></canvas>
+  <header id="hud" hidden>
+    <div class="hudline"><span class="brand">SKYBREAK</span><span id="stageLabel"></span><button id="pauseBtn" aria-label="Pause game">Ⅱ</button></div>
+    <div class="hudline stats"><span id="health"></span><span id="score">0</span><span id="combo">×1</span></div>
+    <div class="versepanel"><div class="versehead"><b id="reference"></b><span id="wordCount"></span></div><p id="verse"></p></div>
+    <div id="bossHud" hidden><span>STORM ENGINE</span><progress id="bossBar" max="100" value="100"></progress></div>
+  </header>
+  <div id="announcement" role="status" aria-live="polite"></div>
+  <div id="target" hidden><span id="targetLabel">NEXT WORD</span><strong id="targetWord"></strong></div>
+  <footer id="controls" hidden>
+    <div class="actionrow"><button id="hintBtn">Reveal word</button><button id="jumpBtn">↑ JUMP</button><button id="burstBtn">↓ BURST <span id="charge">0/5</span></button></div>
+    <div id="lanes" class="lanebuttons"><button data-lane="0" aria-label="Left lane"></button><button data-lane="1" aria-label="Middle lane"></button><button data-lane="2" aria-label="Right lane"></button></div>
+    <p id="controlHint">Swipe ← → to steer · ↑ jump · ↓ burst</p>
+  </footer>
+  <section id="menu" class="screen">
+    <div class="menucontent">
+      <div class="topline"><a href="../">← All games</a><button id="soundBtn" aria-pressed="true">Sound on</button></div>
+      <div class="titleblock"><p class="eyebrow">HIDE THE WORD · KJV</p><h1>SKY<span>BREAK</span></h1><p class="tagline">Learn the verse. Ride the sky. Break the storm.</p></div>
+      <div class="missionselect"><label for="mission">CHOOSE YOUR MISSION</label><select id="mission"></select><p id="missionVerse"></p></div>
+      <div class="optionrow"><label>Speed<select id="difficulty"><option value="easy">Explorer</option><option value="normal" selected>Adventurer</option><option value="hard">Sky legend</option></select></label><label>Start with<select id="startMode"><option value="0">Learn → Recall → Boss</option><option value="1">Recall → Boss</option><option value="2">Boss challenge</option></select></label></div>
+      <button id="playBtn" class="primary">LET’S FLY <span>→</span></button>
+      <div class="how"><span><b>01</b> Steer into the next word</span><span><b>02</b> Jump the coral hazards</span><span><b>03</b> Five words charge a burst</span></div>
+      <p id="record" class="record"></p><p class="smallprint">A make-believe sky adventure with exact KJV verses.<br>Your medals and best scores stay on this device.</p>
+    </div>
+  </section>
+  <section id="overlay" class="screen" hidden role="dialog" aria-modal="true" aria-labelledby="overlayTitle"><div class="dialog"><p id="overlayKicker" class="eyebrow"></p><h2 id="overlayTitle"></h2><div id="overlayBody"></div><div id="overlayActions"></div></div></section>
+</main>
+<script src="core.js?v=1"></script>
+<script src="game.js?v=1"></script>
+</body></html>
